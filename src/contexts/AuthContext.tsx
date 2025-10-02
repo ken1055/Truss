@@ -34,15 +34,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    console.log("refreshProfileForUser: Starting profile fetch for user:", targetUser.id);
+    console.log(
+      "refreshProfileForUser: Starting profile fetch for user:",
+      targetUser.id
+    );
 
     try {
       // プロフィール情報の取得
-      console.log("refreshProfileForUser: Fetching member_profiles...");
+      console.log("refreshProfileForUser: Fetching profiles...");
       const { data: profileData, error: profileError } = await supabase
-        .from("member_profiles")
+        .from("profiles")
         .select("*")
-        .eq("user_id", targetUser.id)
+        .eq("id", targetUser.id)
         .single();
 
       console.log("refreshProfileForUser: Profile fetch result:", {
@@ -58,12 +61,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(profileData);
       }
 
-      // 役割情報の取得
-      console.log("refreshProfileForUser: Fetching member_roles...");
-      const { data: rolesData, error: rolesError } = await supabase
-        .from("member_roles")
-        .select("role")
-        .eq("user_id", targetUser.id);
+      // 役割情報の取得（現在はprofilesテーブルのみなので空配列を設定）
+      console.log("refreshProfileForUser: Setting default roles...");
+      const rolesData: any[] = [];
+      const rolesError = null;
 
       console.log("refreshProfileForUser: Roles fetch result:", {
         rolesData,
