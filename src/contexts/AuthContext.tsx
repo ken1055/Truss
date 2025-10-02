@@ -29,51 +29,87 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClientComponentClient();
 
   const refreshProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log("refreshProfile: user not available");
+      return;
+    }
+
+    console.log("refreshProfile: Starting profile fetch for user:", user.id);
 
     try {
       // プロフィール情報の取得
-      const { data: profileData } = await supabase
+      console.log("refreshProfile: Fetching member_profiles...");
+      const { data: profileData, error: profileError } = await supabase
         .from("member_profiles")
         .select("*")
         .eq("user_id", user.id)
         .single();
 
-      setProfile(profileData);
+      console.log("refreshProfile: Profile fetch result:", { profileData, profileError });
+
+      if (profileError) {
+        console.error("プロフィール取得エラー:", profileError);
+        // プロフィールが存在しない場合は空のプロフィールを設定
+        setProfile(null);
+      } else {
+        setProfile(profileData);
+      }
 
       // 役割情報の取得
-      const { data: rolesData } = await supabase
+      console.log("refreshProfile: Fetching member_roles...");
+      const { data: rolesData, error: rolesError } = await supabase
         .from("member_roles")
         .select("role")
         .eq("user_id", user.id);
 
-      setRoles(rolesData?.map((r: any) => r.role) || []);
+      console.log("refreshProfile: Roles fetch result:", { rolesData, rolesError });
+
+      if (rolesError) {
+        console.error("役割取得エラー:", rolesError);
+        setRoles([]);
+      } else {
+        setRoles(rolesData?.map((r: any) => r.role) || []);
+      }
+
+      console.log("refreshProfile: Profile refresh completed");
     } catch (error) {
       console.error("プロフィール取得エラー:", error);
+      setProfile(null);
+      setRoles([]);
     }
   };
 
   useEffect(() => {
     // 初期認証状態の取得
     const getUser = async () => {
+      console.log("getUser: Starting initial auth check");
+      
       if (!supabase) {
+        console.log("getUser: No supabase client");
         setLoading(false);
         return;
       }
 
       try {
+        console.log("getUser: Fetching current user...");
         const {
           data: { user },
         } = await supabase.auth.getUser();
+        
+        console.log("getUser: Current user:", user ? { id: user.id, email: user.email } : null);
         setUser(user);
 
         if (user) {
+          console.log("getUser: User found, refreshing profile...");
           await refreshProfile();
+        } else {
+          console.log("getUser: No user found");
         }
       } catch (error) {
         console.error("認証状態取得エラー:", error);
       }
 
+      console.log("getUser: Setting loading to false");
       setLoading(false);
     };
 
@@ -82,22 +118,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // 認証状態の変更を監視
     if (supabase) {
+      console.log("Setting up auth state change listener");
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
+        console.log("Auth state changed:", { event, hasSession: !!session, hasUser: !!session?.user });
+        
         setUser(session?.user ?? null);
 
         if (session?.user) {
+          console.log("Auth state change: User logged in, refreshing profile...");
           await refreshProfile();
         } else {
+          console.log("Auth state change: No user, clearing profile");
           setProfile(null);
           setRoles([]);
         }
 
+        console.log("Auth state change: Setting loading to false");
         setLoading(false);
       });
 
-      return () => subscription.unsubscribe();
+      return () => {
+        console.log("Unsubscribing from auth state changes");
+        subscription.unsubscribe();
+      };
     }
   }, [supabase]);
 

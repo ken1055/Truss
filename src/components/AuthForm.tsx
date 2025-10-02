@@ -40,17 +40,20 @@ export default function AuthForm({ mode }: AuthFormProps) {
   try {
     supabase = createClientComponentClient();
     console.log("Supabase client created successfully");
-    
+
     // 接続テスト
     if (supabase) {
-      supabase.auth.getSession().then(({ data, error }) => {
-        console.log("Supabase connection test:", { 
-          hasSession: !!data.session, 
-          error: error?.message 
+      supabase.auth
+        .getSession()
+        .then(({ data, error }) => {
+          console.log("Supabase connection test:", {
+            hasSession: !!data.session,
+            error: error?.message,
+          });
+        })
+        .catch((testError) => {
+          console.error("Supabase connection test failed:", testError);
         });
-      }).catch((testError) => {
-        console.error("Supabase connection test failed:", testError);
-      });
     }
   } catch (error) {
     console.error("Supabase client creation failed:", error);
@@ -85,9 +88,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
         if (error) {
           throw error;
         } else if (data.user) {
-          setMessage(
-            "確認メールを送信しました。メールをチェックしてアカウントを有効化してください。"
-          );
+          setMessage("アカウントが作成されました！ダッシュボードに移動します...");
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 2000);
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -104,13 +108,13 @@ export default function AuthForm({ mode }: AuthFormProps) {
     } catch (error: unknown) {
       console.error("AuthForm: Caught error", error);
       console.error("Error details:", {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : 'Unknown',
-        stack: error instanceof Error ? error.stack : 'Unknown',
+        name: error instanceof Error ? error.name : "Unknown",
+        message: error instanceof Error ? error.message : "Unknown",
+        stack: error instanceof Error ? error.stack : "Unknown",
         supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        hasSupabaseClient: !!supabase
+        hasSupabaseClient: !!supabase,
       });
-      
+
       let errorMessage = "エラーが発生しました";
 
       if (error instanceof Error) {
