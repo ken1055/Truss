@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { createBrowserClient } from "@supabase/ssr";
+import type { Database, MemberProfile, EventParticipant } from "./types";
 
 // TypeScript型定義
 export interface Profile {
@@ -70,15 +71,6 @@ export interface GroupMember {
   profile: Profile;
 }
 
-export interface EventParticipant {
-  id: string;
-  event_id: string;
-  user_id: string;
-  status: "registered" | "confirmed" | "cancelled";
-  preferences?: Record<string, unknown>;
-  created_at: string;
-  profile: Profile;
-}
 
 // Database type definition
 export interface Database {
