@@ -297,13 +297,15 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                   >
                     <div>
                       <span className="font-medium">
-                        {participant.profile.full_name}
+                        {(participant.profile as any).full_name || (participant.profile as any).name}
                       </span>
                       <span className="ml-2 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded">
-                        {participant.profile.member_category === "undergraduate"
+                        {(participant.profile as any).member_category === "undergraduate"
                           ? "学部生"
-                          : participant.profile.member_category === "graduate"
+                          : (participant.profile as any).member_category === "graduate"
                           ? "大学院生"
+                          : (participant.profile as any).student_type === "international"
+                          ? "留学生"
                           : "会員"}
                       </span>
                     </div>
