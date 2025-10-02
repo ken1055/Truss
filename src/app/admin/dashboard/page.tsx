@@ -70,7 +70,7 @@ export default function AdminDashboard() {
             activeGroups: groupsResult.count || demoStats.activeGroups,
           });
         } catch (error) {
-          console.log("Demo mode: Using dummy stats");
+          console.error("統計データの取得に失敗しました:", error);
           setStats(demoStats);
         }
       } else {

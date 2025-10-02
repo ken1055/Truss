@@ -23,18 +23,13 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const supabase = createClientComponentClient();
   const router = useRouter();
 
-  console.log("AuthForm: Supabase client created", supabase);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      console.log("AuthForm: Starting authentication process", { mode });
-
       if (mode === "signup") {
-        console.log("AuthForm: Calling signUp");
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -46,46 +41,21 @@ export default function AuthForm({ mode }: AuthFormProps) {
           },
         });
 
-        console.log("AuthForm: signUp result", { data, error });
-
         if (error) {
-          if (error.message.includes("Demo mode")) {
-            setMessage(
-              "✨ デモモード: アカウント作成フォームの動作を確認しました！実際のサービスではここでアカウントが作成されます。3秒後にダッシュボードに移動します..."
-            );
-            // デモモードでは3秒後にダッシュボードに遷移
-            setTimeout(() => {
-              router.push("/dashboard");
-            }, 3000);
-          } else {
-            throw error;
-          }
+          throw error;
         } else if (data.user) {
           setMessage(
             "確認メールを送信しました。メールをチェックしてアカウントを有効化してください。"
           );
         }
       } else {
-        console.log("AuthForm: Calling signInWithPassword");
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        console.log("AuthForm: signInWithPassword result", { data, error });
-
         if (error) {
-          if (error.message.includes("Demo mode")) {
-            setMessage(
-              "✨ デモモード: ログインフォームの動作を確認しました！実際のサービスではここでログインが完了します。3秒後にダッシュボードに移動します..."
-            );
-            // デモモードでは3秒後にダッシュボードに遷移
-            setTimeout(() => {
-              router.push("/dashboard");
-            }, 3000);
-          } else {
-            throw error;
-          }
+          throw error;
         } else if (data.user) {
           router.push("/dashboard");
         }
@@ -113,12 +83,6 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 ? "サークル交流アプリへようこそ"
                 : "留学生と在校生の交流を始めましょう"}
             </p>
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-700">
-                🚧 <strong>デモモード:</strong>{" "}
-                任意のメールアドレスとパスワードでお試しいただけます
-              </p>
-            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

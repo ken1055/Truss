@@ -111,7 +111,7 @@ export default function AdminSuggestionsPage() {
 
           setSuggestions(data || demoSuggestions);
         } catch (error) {
-          console.log("Demo mode: Using dummy suggestions");
+          console.error("提案データの取得に失敗しました:", error);
           setSuggestions(demoSuggestions);
         }
       } else {
