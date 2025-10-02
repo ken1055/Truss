@@ -21,22 +21,37 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [message, setMessage] = useState("");
 
   const router = useRouter();
-  
+
   // 環境変数の確認
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
+
   console.log("Environment check:", {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseKey,
-    urlPrefix: supabaseUrl?.substring(0, 20) + "...",
-    keyPrefix: supabaseKey?.substring(0, 20) + "..."
+    urlPrefix: supabaseUrl?.substring(0, 30) + "...",
+    keyPrefix: supabaseKey?.substring(0, 30) + "...",
+    fullUrl: supabaseUrl, // 完全なURLを表示（デバッグ用）
+    nodeEnv: process.env.NODE_ENV,
   });
 
   // Supabaseクライアントの作成（エラーハンドリング付き）
   let supabase: ReturnType<typeof createClientComponentClient> | null = null;
   try {
     supabase = createClientComponentClient();
+    console.log("Supabase client created successfully");
+    
+    // 接続テスト
+    if (supabase) {
+      supabase.auth.getSession().then(({ data, error }) => {
+        console.log("Supabase connection test:", { 
+          hasSession: !!data.session, 
+          error: error?.message 
+        });
+      }).catch((testError) => {
+        console.error("Supabase connection test failed:", testError);
+      });
+    }
   } catch (error) {
     console.error("Supabase client creation failed:", error);
   }
@@ -47,7 +62,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
     setMessage("");
 
     if (!supabase) {
-      setMessage("エラー: Supabaseクライアントが初期化されていません。環境変数を確認してください。");
+      setMessage(
+        "エラー: Supabaseクライアントが初期化されていません。環境変数を確認してください。"
+      );
       setLoading(false);
       return;
     }
@@ -86,24 +103,37 @@ export default function AuthForm({ mode }: AuthFormProps) {
       }
     } catch (error: unknown) {
       console.error("AuthForm: Caught error", error);
-      let errorMessage = "エラーが発生しました";
+      console.error("Error details:", {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Unknown',
+        stack: error instanceof Error ? error.stack : 'Unknown',
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasSupabaseClient: !!supabase
+      });
       
+      let errorMessage = "エラーが発生しました";
+
       if (error instanceof Error) {
         errorMessage = error.message;
-        
+
         // ネットワークエラーの詳細を追加
         if (error.message.includes("Failed to fetch")) {
-          errorMessage = "ネットワーク接続エラー: Supabaseサーバーに接続できません。以下を確認してください:\n" +
-                        "1. インターネット接続\n" +
-                        "2. Supabase環境変数の設定\n" +
-                        "3. SupabaseプロジェクトのURL";
+          errorMessage =
+            "ネットワーク接続エラー: Supabaseサーバーに接続できません。\n" +
+            `URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}\n` +
+            "以下を確認してください:\n" +
+            "1. インターネット接続\n" +
+            "2. Supabase環境変数の設定\n" +
+            "3. SupabaseプロジェクトのURL\n" +
+            "4. Supabaseプロジェクトが有効かどうか";
         } else if (error.message.includes("Invalid login credentials")) {
           errorMessage = "メールアドレスまたはパスワードが正しくありません";
         } else if (error.message.includes("Email not confirmed")) {
-          errorMessage = "メールアドレスが確認されていません。確認メールをチェックしてください";
+          errorMessage =
+            "メールアドレスが確認されていません。確認メールをチェックしてください";
         }
       }
-      
+
       setMessage("エラー: " + errorMessage);
     } finally {
       setLoading(false);
