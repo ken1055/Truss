@@ -4,8 +4,31 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClientComponentClient } from "@/lib/supabase";
-import type { Language, UserLanguage, Availability } from "@/lib/supabase";
+// import type { Language, UserLanguage, Availability } from "@/lib/supabase";
 import { ArrowLeft, Plus, Trash2, Save, Clock } from "lucide-react";
+
+// 一時的な型定義
+interface Language {
+  id: string;
+  name: string;
+  code: string;
+}
+
+interface UserLanguage {
+  id: string;
+  user_id: string;
+  language_id: string;
+  proficiency_level: "beginner" | "intermediate" | "advanced" | "native";
+  language: Language;
+}
+
+interface Availability {
+  id: string;
+  user_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
 
 export default function ProfilePage() {
   const { user, profile, loading } = useAuth();
@@ -13,9 +36,10 @@ export default function ProfilePage() {
   const supabase = createClientComponentClient();
 
   const [formData, setFormData] = useState({
-    name: "",
-    gender: "",
-    bio: "",
+    full_name: "",
+    department: "",
+    grade: 1,
+    phone_number: "",
   });
 
   const [languages, setLanguages] = useState<Language[]>([]);
@@ -49,16 +73,18 @@ export default function ProfilePage() {
 
     // プロフィール情報の設定（デモモード対応）
     const demoProfile = {
-      name: "デモユーザー",
-      gender: "male",
-      bio: "これはデモ用のプロフィールです。",
+      full_name: "デモユーザー",
+      department: "情報工学科",
+      grade: 3,
+      phone_number: "090-1234-5678",
     };
 
     const displayProfile = profile || demoProfile;
     setFormData({
-      name: displayProfile.name || "",
-      gender: displayProfile.gender || "",
-      bio: displayProfile.bio || "",
+      full_name: displayProfile.full_name || "",
+      department: displayProfile.department || "",
+      grade: displayProfile.grade || 1,
+      phone_number: displayProfile.phone_number || "",
     });
 
     // デモモードでのダミーデータ設定
@@ -164,9 +190,8 @@ export default function ProfilePage() {
     }
 
     try {
-      const { error } = await (supabase.from("profiles") as any).upsert({
-        id: user.id,
-        email: user.email!,
+      const { error } = await (supabase.from("member_profiles") as any).upsert({
+        user_id: user.id,
         ...formData,
       });
 
@@ -359,9 +384,9 @@ export default function ProfilePage() {
               </label>
               <input
                 type="text"
-                value={formData.name}
+                value={formData.full_name}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                  setFormData((prev) => ({ ...prev, full_name: e.target.value }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
@@ -369,38 +394,53 @@ export default function ProfilePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                性別
+                学部・学科
+              </label>
+              <input
+                type="text"
+                value={formData.department}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, department: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                学年
               </label>
               <select
-                value={formData.gender}
+                value={formData.grade}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, gender: e.target.value }))
+                  setFormData((prev) => ({ ...prev, grade: parseInt(e.target.value) }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <option value="">選択してください</option>
-                <option value="male">男性</option>
-                <option value="female">女性</option>
-                <option value="other">その他</option>
-                <option value="prefer_not_to_say">回答しない</option>
+                <option value={1}>1年生</option>
+                <option value={2}>2年生</option>
+                <option value={3}>3年生</option>
+                <option value={4}>4年生</option>
+                <option value={5}>5年生</option>
+                <option value={6}>6年生</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                電話番号
+              </label>
+              <input
+                type="tel"
+                value={formData.phone_number}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, phone_number: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
           </div>
 
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              自己紹介
-            </label>
-            <textarea
-              value={formData.bio}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, bio: e.target.value }))
-              }
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="趣味や興味のあることを教えてください..."
-            />
-          </div>
 
           <button
             onClick={handleSaveProfile}

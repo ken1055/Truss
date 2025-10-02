@@ -297,12 +297,14 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                   >
                     <div>
                       <span className="font-medium">
-                        {participant.profile.name}
+                        {participant.profile.full_name}
                       </span>
                       <span className="ml-2 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded">
-                        {participant.profile.student_type === "international"
-                          ? "留学生"
-                          : "在校生"}
+                        {participant.profile.member_category === "undergraduate"
+                          ? "学部生"
+                          : participant.profile.member_category === "graduate"
+                          ? "大学院生"
+                          : "会員"}
                       </span>
                     </div>
                   </div>
@@ -402,7 +404,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     className="bg-green-50 border border-green-200 rounded-lg p-4"
                   >
                     <h4 className="font-medium text-green-900 mb-2">
-                      {group.name}
+                      グループ {group.id}
                     </h4>
                     <div className="text-sm text-green-700">
                       <p>最大サイズ: {group.max_size}名</p>
@@ -474,28 +476,24 @@ function GroupCard({ group, index }: GroupCardProps) {
               key={member.user_id}
               className="flex items-center justify-between text-sm"
             >
-              <span>{member.profile.name}</span>
+              <span>{member.profile.full_name}</span>
               <div className="flex space-x-2">
                 <span
                   className={`px-2 py-1 rounded text-xs ${
-                    member.profile.student_type === "international"
+                    member.profile.member_category === "undergraduate"
                       ? "bg-blue-100 text-blue-800"
                       : "bg-green-100 text-green-800"
                   }`}
                 >
-                  {member.profile.student_type === "international"
-                    ? "留学生"
-                    : "在校生"}
+                  {member.profile.member_category === "undergraduate"
+                    ? "学部生"
+                    : member.profile.member_category === "graduate"
+                    ? "大学院生"
+                    : "会員"}
                 </span>
-                {member.profile.gender && (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
-                    {member.profile.gender === "male"
-                      ? "男性"
-                      : member.profile.gender === "female"
-                      ? "女性"
-                      : "その他"}
-                  </span>
-                )}
+                <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
+                  {member.profile.department}
+                </span>
               </div>
             </div>
           ))}

@@ -34,8 +34,8 @@ export default function DashboardPage() {
 
   // デモモード用のダミーデータ
   const demoProfile = {
-    name: "デモユーザー",
-    student_type: "international" as const,
+    full_name: "デモユーザー",
+    member_category: "undergraduate" as const,
   };
 
   const displayProfile = profile || demoProfile;
@@ -58,12 +58,16 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold">
-                こんにちは、{displayProfile.name}さん
+                こんにちは、{displayProfile.full_name}さん
               </h1>
               <p className="text-sm text-gray-600">
-                {displayProfile.student_type === "international"
-                  ? "留学生"
-                  : "在校生"}
+                {displayProfile.member_category === "undergraduate"
+                  ? "学部生"
+                  : displayProfile.member_category === "graduate"
+                  ? "大学院生"
+                  : displayProfile.member_category === "faculty"
+                  ? "教職員"
+                  : "会員"}
               </p>
             </div>
             <button
