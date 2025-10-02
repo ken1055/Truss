@@ -34,7 +34,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
   });
 
   // Supabaseクライアントの作成（エラーハンドリング付き）
-  let supabase;
+  let supabase: ReturnType<typeof createClientComponentClient> | null = null;
   try {
     supabase = createClientComponentClient();
   } catch (error) {
