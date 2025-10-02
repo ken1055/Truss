@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClientComponentClient } from "@/lib/supabase";
+import type { MemberProfile } from "@/lib/types";
 // import type { Language, UserLanguage, Availability } from "@/lib/supabase";
 import { ArrowLeft, Plus, Trash2, Save, Clock } from "lucide-react";
 

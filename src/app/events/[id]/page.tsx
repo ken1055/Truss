@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClientComponentClient } from "@/lib/supabase";
-import type { Event, Group } from "@/lib/supabase";
+import type { Event, Group } from "@/lib/types";
 import { createOptimalGroups, getGroupStats } from "@/lib/matching";
 import type { ParticipantWithDetails, GroupSuggestion } from "@/lib/matching";
 import {

@@ -3,7 +3,7 @@ import type {
   UserLanguage,
   Availability,
   EventParticipant,
-} from "./supabase";
+} from "./types";
 
 export interface MatchingPreferences {
   targetInternationalRatio?: number; // 0.0-1.0
@@ -14,8 +14,14 @@ export interface MatchingPreferences {
   prioritizeScheduleCompatibility?: boolean;
 }
 
-export interface ParticipantWithDetails extends EventParticipant {
-  profile: Profile & {
+export interface ParticipantWithDetails {
+  id: string;
+  event_id: string;
+  user_id: string;
+  joined_at: string;
+  status: "registered" | "confirmed" | "cancelled";
+  created_at: string;
+  profile: (Profile | any) & {
     user_languages?: UserLanguage[];
     availability?: Availability[];
   };
@@ -192,7 +198,7 @@ function calculateLanguageCompatibility(
   const languageUsers = new Map<string, number>();
 
   members.forEach((member) => {
-    member.profile.user_languages?.forEach((userLang) => {
+    member.profile.user_languages?.forEach((userLang: any) => {
       allLanguages.add(userLang.language_id);
       languageUsers.set(
         userLang.language_id,
@@ -243,8 +249,8 @@ function calculateScheduleCompatibility(
   // 各曜日ごとに重複する時間帯を計算
   for (let day = 0; day < 7; day++) {
     const dayAvailabilities = memberAvailabilities
-      .map((availability) => availability.filter((a) => a.day_of_week === day))
-      .filter((dayAvail) => dayAvail.length > 0);
+      .map((availability: any) => availability.filter((a: any) => a.day_of_week === day))
+      .filter((dayAvail: any) => dayAvail.length > 0);
 
     if (dayAvailabilities.length < 2) continue;
 
@@ -267,8 +273,8 @@ function findCommonTimeSlots(dayAvailabilities: Availability[][]): {
   // 簡略化: 1時間単位で時間帯を分割して重複を計算
   const timeSlots = Array(24).fill(0);
 
-  dayAvailabilities.forEach((availability) => {
-    availability.forEach((avail) => {
+  dayAvailabilities.forEach((availability: any) => {
+    availability.forEach((avail: any) => {
       const startHour = parseInt(avail.start_time.split(":")[0]);
       const endHour = parseInt(avail.end_time.split(":")[0]);
 

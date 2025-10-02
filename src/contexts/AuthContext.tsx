@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select("role")
         .eq("user_id", user.id);
 
-      setRoles(rolesData?.map(r => r.role) || []);
+      setRoles(rolesData?.map((r: any) => r.role) || []);
     } catch (error) {
       console.error("プロフィール取得エラー:", error);
     }
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (supabase) {
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (event, session) => {
+      } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {

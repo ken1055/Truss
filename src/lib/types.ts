@@ -168,6 +168,61 @@ export interface LineToken {
   updated_at: string;
 }
 
+// 追加の型定義（マッチング機能用）
+export interface Group {
+  id: string;
+  event_id: string;
+  name?: string;
+  max_size: number;
+  status: "pending" | "confirmed" | "completed";
+  members: GroupMember[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface GroupMember {
+  id: string;
+  group_id: string;
+  user_id: string;
+  joined_at?: string;
+  profile: MemberProfile;
+}
+
+// 古いProfile型（互換性のため）
+export interface Profile {
+  id: string;
+  email?: string;
+  name: string;
+  student_type: "international" | "domestic";
+  gender?: "male" | "female" | "other" | "prefer_not_to_say";
+  bio?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// 言語関連の型定義
+export interface Language {
+  id: string;
+  name: string;
+  code: string;
+}
+
+export interface UserLanguage {
+  id: string;
+  user_id: string;
+  language_id: string;
+  proficiency_level: "beginner" | "intermediate" | "advanced" | "native";
+  language: Language;
+}
+
+export interface Availability {
+  id: string;
+  user_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
 // Database型定義
 export interface Database {
   public: {

@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClientComponentClient } from "@/lib/supabase";
-import type { Event, EventParticipant } from "@/lib/supabase";
+import type { Event, EventParticipant } from "@/lib/types";
 import { Calendar, MapPin, Users, Clock, Plus, ArrowLeft } from "lucide-react";
 
 export default function EventsPage() {

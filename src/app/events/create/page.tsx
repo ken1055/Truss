@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClientComponentClient } from "@/lib/supabase";
+import type { Event } from "@/lib/types";
 import {
   ArrowLeft,
   Calendar,
