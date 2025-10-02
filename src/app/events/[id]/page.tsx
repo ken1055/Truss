@@ -167,7 +167,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         // グループメンバーを追加
         const memberInserts = suggestion.members.map((member) => ({
           group_id: groupData.id,
-          user_id: (member as any).user_id || member.id, // 型キャストで解決
+          user_id: (member as any).user_id || (member as any).id, // 両方を型キャスト
         }));
 
         const { error: membersError } = await (
@@ -473,7 +473,7 @@ function GroupCard({ group, index }: GroupCardProps) {
         <div className="space-y-1">
           {group.members.map((member) => (
             <div
-              key={(member as any).user_id || member.id}
+              key={(member as any).user_id || (member as any).id}
               className="flex items-center justify-between text-sm"
             >
               <span>{member.profile.full_name}</span>
