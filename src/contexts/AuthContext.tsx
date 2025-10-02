@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // プロフィール情報の取得
       console.log("refreshProfileForUser: Fetching profiles...");
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await (supabase as any)
         .from("profiles")
         .select("*")
         .eq("id", targetUser.id)

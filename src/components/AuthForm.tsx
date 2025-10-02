@@ -90,7 +90,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
         } else if (data.user) {
           // プロフィールテーブルにデータを挿入
           console.log("Creating profile for user:", data.user.id);
-          const { error: profileError } = await supabase
+          const { error: profileError } = await (supabase as any)
             .from("profiles")
             .insert([
               {
