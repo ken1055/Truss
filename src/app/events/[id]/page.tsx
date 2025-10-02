@@ -478,23 +478,25 @@ function GroupCard({ group, index }: GroupCardProps) {
               key={(member as any).user_id || (member as any).id}
               className="flex items-center justify-between text-sm"
             >
-              <span>{member.profile.full_name}</span>
+              <span>{(member.profile as any).full_name || (member.profile as any).name}</span>
               <div className="flex space-x-2">
                 <span
                   className={`px-2 py-1 rounded text-xs ${
-                    member.profile.member_category === "undergraduate"
+                    (member.profile as any).member_category === "undergraduate"
                       ? "bg-blue-100 text-blue-800"
                       : "bg-green-100 text-green-800"
                   }`}
                 >
-                  {member.profile.member_category === "undergraduate"
+                  {(member.profile as any).member_category === "undergraduate"
                     ? "学部生"
-                    : member.profile.member_category === "graduate"
+                    : (member.profile as any).member_category === "graduate"
                     ? "大学院生"
+                    : (member.profile as any).student_type === "international"
+                    ? "留学生"
                     : "会員"}
                 </span>
                 <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
-                  {member.profile.department}
+                  {(member.profile as any).department || "情報なし"}
                 </span>
               </div>
             </div>
