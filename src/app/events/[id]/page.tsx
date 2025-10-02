@@ -292,7 +292,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {participants.map((participant) => (
                   <div
-                    key={participant.id}
+                    key={(participant as any).id}
                     className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
                   >
                     <div>
