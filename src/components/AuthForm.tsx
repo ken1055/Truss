@@ -20,13 +20,37 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const supabase = createClientComponentClient();
   const router = useRouter();
+  
+  // 環境変数の確認
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  console.log("Environment check:", {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseKey,
+    urlPrefix: supabaseUrl?.substring(0, 20) + "...",
+    keyPrefix: supabaseKey?.substring(0, 20) + "..."
+  });
+
+  // Supabaseクライアントの作成（エラーハンドリング付き）
+  let supabase;
+  try {
+    supabase = createClientComponentClient();
+  } catch (error) {
+    console.error("Supabase client creation failed:", error);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+
+    if (!supabase) {
+      setMessage("エラー: Supabaseクライアントが初期化されていません。環境変数を確認してください。");
+      setLoading(false);
+      return;
+    }
 
     try {
       if (mode === "signup") {
@@ -62,8 +86,24 @@ export default function AuthForm({ mode }: AuthFormProps) {
       }
     } catch (error: unknown) {
       console.error("AuthForm: Caught error", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "エラーが発生しました";
+      let errorMessage = "エラーが発生しました";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // ネットワークエラーの詳細を追加
+        if (error.message.includes("Failed to fetch")) {
+          errorMessage = "ネットワーク接続エラー: Supabaseサーバーに接続できません。以下を確認してください:\n" +
+                        "1. インターネット接続\n" +
+                        "2. Supabase環境変数の設定\n" +
+                        "3. SupabaseプロジェクトのURL";
+        } else if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "メールアドレスまたはパスワードが正しくありません";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "メールアドレスが確認されていません。確認メールをチェックしてください";
+        }
+      }
+      
       setMessage("エラー: " + errorMessage);
     } finally {
       setLoading(false);
