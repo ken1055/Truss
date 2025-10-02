@@ -42,6 +42,12 @@ export default function EventsPage() {
           max_participants: 20,
           created_by: "demo-organizer",
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          status: "active" as const,
+          payment_type: "free" as const,
+          fee_amount: null,
+          registration_deadline: null,
+          is_public: true,
         },
         {
           id: "2",
@@ -57,6 +63,12 @@ export default function EventsPage() {
           max_participants: 16,
           created_by: "demo-organizer",
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          status: "active" as const,
+          payment_type: "free" as const,
+          fee_amount: null,
+          registration_deadline: null,
+          is_public: true,
         },
       ];
 
