@@ -45,8 +45,8 @@ export default function EventsPage() {
           updated_at: new Date().toISOString(),
           status: "active" as const,
           payment_type: "free" as const,
-          fee_amount: null,
-          registration_deadline: null,
+          fee_amount: null as number | null,
+          registration_deadline: null as string | null,
           is_public: true,
         },
         {
@@ -66,8 +66,8 @@ export default function EventsPage() {
           updated_at: new Date().toISOString(),
           status: "active" as const,
           payment_type: "free" as const,
-          fee_amount: null,
-          registration_deadline: null,
+          fee_amount: null as number | null,
+          registration_deadline: null as string | null,
           is_public: true,
         },
       ];
