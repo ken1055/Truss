@@ -78,6 +78,23 @@ export default function EventsPage() {
           event_id: "1",
           user_id: "demo",
           joined_at: new Date().toISOString(),
+          status: "confirmed" as const,
+          created_at: new Date().toISOString(),
+          profile: {
+            id: "demo-user",
+            user_id: "demo",
+            full_name: "デモユーザー",
+            student_id: "2024001",
+            department: "情報工学科",
+            grade: 3,
+            phone_number: "090-1234-5678",
+            profile_image_url: null,
+            student_id_image_url: null,
+            member_category: "undergraduate" as const,
+            status: "active" as const,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
         },
       ];
 
