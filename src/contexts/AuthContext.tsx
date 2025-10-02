@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 役割情報の取得（現在はprofilesテーブルのみなので空配列を設定）
       console.log("refreshProfileForUser: Setting default roles...");
       const rolesData: any[] = [];
-      const rolesError = null;
+      const rolesError: any = null;
 
       console.log("refreshProfileForUser: Roles fetch result:", {
         rolesData,
