@@ -88,7 +88,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
         if (error) {
           throw error;
         } else if (data.user) {
-          setMessage("アカウントが作成されました！ダッシュボードに移動します...");
+          setMessage(
+            "アカウントが作成されました！ダッシュボードに移動します..."
+          );
           setTimeout(() => {
             router.push("/dashboard");
           }, 2000);

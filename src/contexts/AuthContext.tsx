@@ -28,24 +28,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const supabase = createClientComponentClient();
 
-  const refreshProfile = async () => {
-    if (!user) {
-      console.log("refreshProfile: user not available");
+  const refreshProfileForUser = async (targetUser: any) => {
+    if (!targetUser) {
+      console.log("refreshProfileForUser: user not provided");
       return;
     }
 
-    console.log("refreshProfile: Starting profile fetch for user:", user.id);
+    console.log("refreshProfileForUser: Starting profile fetch for user:", targetUser.id);
 
     try {
       // プロフィール情報の取得
-      console.log("refreshProfile: Fetching member_profiles...");
+      console.log("refreshProfileForUser: Fetching member_profiles...");
       const { data: profileData, error: profileError } = await supabase
         .from("member_profiles")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", targetUser.id)
         .single();
 
-      console.log("refreshProfile: Profile fetch result:", { profileData, profileError });
+      console.log("refreshProfileForUser: Profile fetch result:", {
+        profileData,
+        profileError,
+      });
 
       if (profileError) {
         console.error("プロフィール取得エラー:", profileError);
@@ -56,13 +59,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // 役割情報の取得
-      console.log("refreshProfile: Fetching member_roles...");
+      console.log("refreshProfileForUser: Fetching member_roles...");
       const { data: rolesData, error: rolesError } = await supabase
         .from("member_roles")
         .select("role")
-        .eq("user_id", user.id);
+        .eq("user_id", targetUser.id);
 
-      console.log("refreshProfile: Roles fetch result:", { rolesData, rolesError });
+      console.log("refreshProfileForUser: Roles fetch result:", {
+        rolesData,
+        rolesError,
+      });
 
       if (rolesError) {
         console.error("役割取得エラー:", rolesError);
@@ -71,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRoles(rolesData?.map((r: any) => r.role) || []);
       }
 
-      console.log("refreshProfile: Profile refresh completed");
+      console.log("refreshProfileForUser: Profile refresh completed");
     } catch (error) {
       console.error("プロフィール取得エラー:", error);
       setProfile(null);
@@ -79,11 +85,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshProfile = async () => {
+    if (!user) {
+      console.log("refreshProfile: user not available");
+      return;
+    }
+    await refreshProfileForUser(user);
+  };
+
   useEffect(() => {
     // 初期認証状態の取得
     const getUser = async () => {
       console.log("getUser: Starting initial auth check");
-      
+
       if (!supabase) {
         console.log("getUser: No supabase client");
         setLoading(false);
@@ -95,13 +109,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        
-        console.log("getUser: Current user:", user ? { id: user.id, email: user.email } : null);
+
+        console.log(
+          "getUser: Current user:",
+          user ? { id: user.id, email: user.email } : null
+        );
         setUser(user);
 
         if (user) {
           console.log("getUser: User found, refreshing profile...");
-          await refreshProfile();
+          await refreshProfileForUser(user);
         } else {
           console.log("getUser: No user found");
         }
@@ -115,20 +132,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     getUser();
 
-
     // 認証状態の変更を監視
     if (supabase) {
       console.log("Setting up auth state change listener");
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
-        console.log("Auth state changed:", { event, hasSession: !!session, hasUser: !!session?.user });
-        
+        console.log("Auth state changed:", {
+          event,
+          hasSession: !!session,
+          hasUser: !!session?.user,
+        });
+
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          console.log("Auth state change: User logged in, refreshing profile...");
-          await refreshProfile();
+          console.log(
+            "Auth state change: User logged in, refreshing profile..."
+          );
+          // session.userを直接使用してプロフィールを取得
+          await refreshProfileForUser(session.user);
         } else {
           console.log("Auth state change: No user, clearing profile");
           setProfile(null);
