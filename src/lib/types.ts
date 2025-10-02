@@ -1,13 +1,19 @@
 // Truss会員管理システム型定義
 
 // ENUM型定義
-export type MemberCategory = 'undergraduate' | 'graduate' | 'faculty' | 'staff' | 'alumni' | 'external';
-export type MemberStatus = 'pending' | 'active' | 'suspended' | 'inactive';
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
-export type EventStatus = 'draft' | 'active' | 'cancelled' | 'completed';
-export type EventPaymentType = 'free' | 'paid' | 'optional';
-export type NotificationType = 'info' | 'warning' | 'success' | 'error';
-export type UserRole = 'admin' | 'accountant' | 'event_organizer' | 'member';
+export type MemberCategory =
+  | "undergraduate"
+  | "graduate"
+  | "faculty"
+  | "staff"
+  | "alumni"
+  | "external";
+export type MemberStatus = "pending" | "active" | "suspended" | "inactive";
+export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
+export type EventStatus = "draft" | "active" | "cancelled" | "completed";
+export type EventPaymentType = "free" | "paid" | "optional";
+export type NotificationType = "info" | "warning" | "success" | "error";
+export type UserRole = "admin" | "accountant" | "event_organizer" | "member";
 
 // 基本型定義
 export interface FiscalYear {
@@ -103,7 +109,7 @@ export interface EventParticipant {
   event_id: string;
   user_id: string;
   joined_at: string;
-  status: 'registered' | 'confirmed' | 'cancelled';
+  status: "registered" | "confirmed" | "cancelled";
   created_at: string;
   profile: MemberProfile;
 }
@@ -168,68 +174,72 @@ export interface Database {
     Tables: {
       fiscal_years: {
         Row: FiscalYear;
-        Insert: Omit<FiscalYear, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<FiscalYear, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: Omit<FiscalYear, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<FiscalYear, "id" | "created_at" | "updated_at">>;
       };
       fee_master: {
         Row: FeeMaster;
-        Insert: Omit<FeeMaster, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<FeeMaster, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: Omit<FeeMaster, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<FeeMaster, "id" | "created_at" | "updated_at">>;
       };
       member_profiles: {
         Row: MemberProfile;
-        Insert: Omit<MemberProfile, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<MemberProfile, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: Omit<MemberProfile, "id" | "created_at" | "updated_at">;
+        Update: Partial<
+          Omit<MemberProfile, "id" | "created_at" | "updated_at">
+        >;
       };
       member_roles: {
         Row: MemberRole;
-        Insert: Omit<MemberRole, 'id' | 'created_at'>;
-        Update: Partial<Omit<MemberRole, 'id' | 'created_at'>>;
+        Insert: Omit<MemberRole, "id" | "created_at">;
+        Update: Partial<Omit<MemberRole, "id" | "created_at">>;
       };
       member_documents: {
         Row: MemberDocument;
-        Insert: Omit<MemberDocument, 'id'>;
-        Update: Partial<Omit<MemberDocument, 'id'>>;
+        Insert: Omit<MemberDocument, "id">;
+        Update: Partial<Omit<MemberDocument, "id">>;
       };
       member_payments: {
         Row: MemberPayment;
-        Insert: Omit<MemberPayment, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<MemberPayment, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: Omit<MemberPayment, "id" | "created_at" | "updated_at">;
+        Update: Partial<
+          Omit<MemberPayment, "id" | "created_at" | "updated_at">
+        >;
       };
       events: {
         Row: Event;
-        Insert: Omit<Event, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Event, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: Omit<Event, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<Event, "id" | "created_at" | "updated_at">>;
       };
       event_participants: {
         Row: EventParticipant;
-        Insert: Omit<EventParticipant, 'id' | 'created_at'>;
-        Update: Partial<Omit<EventParticipant, 'id' | 'created_at'>>;
+        Insert: Omit<EventParticipant, "id" | "created_at">;
+        Update: Partial<Omit<EventParticipant, "id" | "created_at">>;
       };
       event_checkins: {
         Row: EventCheckin;
-        Insert: Omit<EventCheckin, 'id'>;
-        Update: Partial<Omit<EventCheckin, 'id'>>;
+        Insert: Omit<EventCheckin, "id">;
+        Update: Partial<Omit<EventCheckin, "id">>;
       };
       event_fees: {
         Row: EventFee;
-        Insert: Omit<EventFee, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<EventFee, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: Omit<EventFee, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<EventFee, "id" | "created_at" | "updated_at">>;
       };
       audit_logs: {
         Row: AuditLog;
-        Insert: Omit<AuditLog, 'id' | 'created_at'>;
-        Update: Partial<Omit<AuditLog, 'id' | 'created_at'>>;
+        Insert: Omit<AuditLog, "id" | "created_at">;
+        Update: Partial<Omit<AuditLog, "id" | "created_at">>;
       };
       notifications: {
         Row: Notification;
-        Insert: Omit<Notification, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Notification, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: Omit<Notification, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<Notification, "id" | "created_at" | "updated_at">>;
       };
       line_tokens: {
         Row: LineToken;
-        Insert: Omit<LineToken, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<LineToken, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: Omit<LineToken, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<LineToken, "id" | "created_at" | "updated_at">>;
       };
     };
     Views: {

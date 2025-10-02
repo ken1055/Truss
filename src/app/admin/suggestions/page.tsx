@@ -27,7 +27,7 @@ interface AnonymousSuggestion {
 }
 
 export default function AdminSuggestionsPage() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, roles } = useAuth();
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -48,7 +48,7 @@ export default function AdminSuggestionsPage() {
     }
 
     // 管理者権限チェック（実際の運用時）
-    if (profile && profile.role !== "admin") {
+    if (profile && !roles.includes("admin")) {
       router.push("/dashboard");
       return;
     }
