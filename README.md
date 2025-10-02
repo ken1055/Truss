@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# サークル交流アプリ
 
-## Getting Started
+留学生と在校生の交流を促進するマッチングアプリです。言語スキル、スケジュール、性別比を考慮したスマートマッチングで、理想的な国際交流グループを作成します。
 
-First, run the development server:
+## 機能
+
+- **認証システム**: Supabase を使用したセキュアなユーザー認証
+- **プロフィール管理**: 言語スキル、空き時間、学生区分の設定
+- **イベント管理**: 交流イベントの作成・参加・管理
+- **スマートマッチング**: 多様な条件を考慮した最適なグループ生成
+- **レスポンシブデザイン**: モバイルからデスクトップまで対応
+
+## 技術スタック
+
+- **フロントエンド**: Next.js 15, TypeScript, Tailwind CSS
+- **バックエンド**: Supabase (PostgreSQL, Auth, RLS)
+- **デプロイ**: Vercel
+- **UI**: Lucide React Icons
+
+## セットアップ
+
+### 1. リポジトリのクローン
+
+```bash
+git clone <repository-url>
+cd circle-matching-app
+```
+
+### 2. 依存関係のインストール
+
+```bash
+npm install
+```
+
+### 3. Supabase プロジェクトの作成
+
+1. [Supabase](https://supabase.com)でアカウントを作成
+2. 新しいプロジェクトを作成
+3. プロジェクトの設定から以下の情報を取得:
+   - Project URL
+   - API Keys (anon/public key)
+   - Service Role Key
+
+### 4. データベースの設定
+
+1. Supabase のダッシュボードで「SQL Editor」を開く
+2. `supabase-schema.sql`ファイルの内容をコピー&ペーストして実行
+
+### 5. 環境変数の設定
+
+`.env.local`ファイルを作成し、以下の環境変数を設定:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+### 6. 開発サーバーの起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 でアプリケーションにアクセスできます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Vercel デプロイ
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Vercel アカウントの作成
 
-## Learn More
+[Vercel](https://vercel.com)でアカウントを作成
 
-To learn more about Next.js, take a look at the following resources:
+### 2. プロジェクトのデプロイ
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install -g vercel
+vercel
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+または、GitHub リポジトリを Vercel に接続してデプロイ
 
-## Deploy on Vercel
+### 3. 環境変数の設定
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Vercel ダッシュボードで以下の環境変数を設定:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+## 使用方法
+
+### 1. アカウント作成
+
+- ホームページから「アカウント作成」をクリック
+- 必要情報を入力（名前、メールアドレス、パスワード、学生区分）
+- 確認メールから認証を完了
+
+### 2. プロフィール設定
+
+- ダッシュボードから「プロフィール設定」をクリック
+- 基本情報、言語スキル、空き時間を設定
+
+### 3. イベント参加
+
+- 「イベントを見る」から開催予定のイベントを確認
+- 興味のあるイベントに参加申し込み
+
+### 4. イベント作成
+
+- 「イベント作成」から新しい交流イベントを企画
+- 日時、場所、参加者数などを設定
+
+### 5. グループマッチング
+
+- イベント詳細ページで「グループを生成」をクリック
+- AI が最適なグループ組み合わせを提案
+- 気に入った組み合わせを保存
+
+## データベーススキーマ
+
+### 主要テーブル
+
+- `profiles`: ユーザープロフィール情報
+- `languages`: 対応言語マスター
+- `user_languages`: ユーザーの言語スキル
+- `availability`: ユーザーの空き時間
+- `events`: 交流イベント
+- `groups`: マッチングされたグループ
+- `group_members`: グループメンバー
+- `event_participants`: イベント参加者
+
+## マッチングアルゴリズム
+
+アプリケーションは以下の要素を考慮してグループを生成します:
+
+1. **留学生・在校生比率**: 目標比率に近いグループを優先
+2. **性別バランス**: 多様性を確保したグループ構成
+3. **言語互換性**: 共通言語や学習言語のマッチング
+4. **スケジュール互換性**: 参加者の空き時間の重複度
+
+## ライセンス
+
+MIT License
+
+## サポート
+
+問題や質問がある場合は、GitHub の Issues ページでお知らせください。
