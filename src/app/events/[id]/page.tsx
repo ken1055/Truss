@@ -167,7 +167,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         // グループメンバーを追加
         const memberInserts = suggestion.members.map((member) => ({
           group_id: groupData.id,
-          user_id: member.user_id,
+          user_id: member.user_id || member.id, // user_idがない場合はidを使用
         }));
 
         const { error: membersError } = await (
