@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 export default function AdminDashboard() {
-  const { user, profile, loading, isAdmin } = useAuth();
+  const { user, profile, loading, hasRole } = useAuth();
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -35,7 +35,7 @@ export default function AdminDashboard() {
     }
 
     // 管理者権限チェック（実際の運用時）
-    if (profile && !isAdmin) {
+    if (profile && !hasRole('admin')) {
       router.push("/dashboard");
       return;
     }
