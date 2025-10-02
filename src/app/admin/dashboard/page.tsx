@@ -35,7 +35,7 @@ export default function AdminDashboard() {
     }
 
     // 管理者権限チェック（実際の運用時）
-    if (profile && !roles.includes('admin')) {
+    if (profile && !roles.includes("admin")) {
       router.push("/dashboard");
       return;
     }
