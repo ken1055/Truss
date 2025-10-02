@@ -79,28 +79,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     getUser();
 
-    // デモモード用のダミーデータ
-    if (process.env.NODE_ENV === "development" && !supabase) {
-      setUser(null);
-      setProfile({
-        id: "demo-user",
-        user_id: "demo-user",
-        full_name: "デモユーザー",
-        student_id: "2024001",
-        department: "情報工学科",
-        grade: 3,
-        phone_number: "090-1234-5678",
-        profile_image_url: null,
-        student_id_image_url: null,
-        member_category: "undergraduate",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-      setRoles(["admin"]);
-      setLoading(false);
-      return;
-    }
 
     // 認証状態の変更を監視
     if (supabase) {

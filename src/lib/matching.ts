@@ -249,7 +249,9 @@ function calculateScheduleCompatibility(
   // 各曜日ごとに重複する時間帯を計算
   for (let day = 0; day < 7; day++) {
     const dayAvailabilities = memberAvailabilities
-      .map((availability: any) => availability.filter((a: any) => a.day_of_week === day))
+      .map((availability: any) =>
+        availability.filter((a: any) => a.day_of_week === day)
+      )
       .filter((dayAvail: any) => dayAvail.length > 0);
 
     if (dayAvailabilities.length < 2) continue;

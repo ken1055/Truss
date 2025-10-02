@@ -28,13 +28,12 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    // デモモードでは認証チェックをスキップ
-    if (!loading && !user && process.env.NODE_ENV !== "development") {
+    if (!loading && !user) {
       router.push("/signin");
       return;
     }
 
-    // 管理者権限チェック（実際の運用時）
+    // 管理者権限チェック
     if (profile && !roles.includes("admin")) {
       router.push("/dashboard");
       return;

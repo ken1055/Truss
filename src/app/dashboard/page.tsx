@@ -18,8 +18,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // デモモードでは認証チェックをスキップ
-    if (!loading && !user && process.env.NODE_ENV !== "development") {
+    if (!loading && !user) {
       router.push("/signin");
     }
   }, [user, loading, router]);
@@ -32,13 +31,15 @@ export default function DashboardPage() {
     );
   }
 
-  // デモモード用のダミーデータ
-  const demoProfile = {
-    full_name: "デモユーザー",
-    member_category: "undergraduate" as const,
-  };
-
-  const displayProfile = profile || demoProfile;
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">プロフィール情報を読み込んでいます...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSignOut = async () => {
     await signOut();
@@ -46,26 +47,21 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* デモモード通知 */}
-      <div className="bg-yellow-100 border-b px-4 py-2 text-center text-sm text-yellow-800">
-        📝 デモモード - 実際のデータは保存されません
-      </div>
-
-      <div className="max-w-2xl mx-auto p-4">
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-2xl mx-auto p-4">
         {/* ヘッダー */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold">
-                こんにちは、{displayProfile.full_name}さん
+                こんにちは、{profile.full_name}さん
               </h1>
               <p className="text-sm text-gray-600">
-                {displayProfile.member_category === "undergraduate"
+                {profile.member_category === "undergraduate"
                   ? "学部生"
-                  : displayProfile.member_category === "graduate"
+                  : profile.member_category === "graduate"
                   ? "大学院生"
-                  : displayProfile.member_category === "faculty"
+                  : profile.member_category === "faculty"
                   ? "教職員"
                   : "会員"}
               </p>

@@ -297,14 +297,18 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                   >
                     <div>
                       <span className="font-medium">
-                        {(participant.profile as any).full_name || (participant.profile as any).name}
+                        {(participant.profile as any).full_name ||
+                          (participant.profile as any).name}
                       </span>
                       <span className="ml-2 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded">
-                        {(participant.profile as any).member_category === "undergraduate"
+                        {(participant.profile as any).member_category ===
+                        "undergraduate"
                           ? "学部生"
-                          : (participant.profile as any).member_category === "graduate"
+                          : (participant.profile as any).member_category ===
+                            "graduate"
                           ? "大学院生"
-                          : (participant.profile as any).student_type === "international"
+                          : (participant.profile as any).student_type ===
+                            "international"
                           ? "留学生"
                           : "会員"}
                       </span>
@@ -478,7 +482,10 @@ function GroupCard({ group, index }: GroupCardProps) {
               key={(member as any).user_id || (member as any).id}
               className="flex items-center justify-between text-sm"
             >
-              <span>{(member.profile as any).full_name || (member.profile as any).name}</span>
+              <span>
+                {(member.profile as any).full_name ||
+                  (member.profile as any).name}
+              </span>
               <div className="flex space-x-2">
                 <span
                   className={`px-2 py-1 rounded text-xs ${
