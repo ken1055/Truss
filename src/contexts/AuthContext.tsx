@@ -51,12 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // プロフィール情報の取得
         console.log("refreshProfileForUser: Fetching profiles...");
 
-         // プロフィール情報の取得（タイムアウトを5秒に短縮）
-         const { data: profileData, error: profileError } = await supabase
-           .from("profiles")
-           .select("*")
-           .eq("id", targetUser.id)
-           .single();
+        // プロフィール情報の取得（タイムアウトを5秒に短縮）
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", targetUser.id)
+          .single();
 
         console.log("refreshProfileForUser: Profile fetch result:", {
           profileData,
@@ -71,7 +71,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             );
             setProfile(null);
           } else {
-            console.error("プロフィール取得エラー:", profileError);
+            console.error("プロフィール取得エラー:", {
+              error: profileError,
+              code: profileError.code,
+              message: profileError.message,
+              userId: targetUser.id
+            });
+            
+            // 具体的なエラーメッセージ
+            if (profileError.message?.includes("relation \"profiles\" does not exist")) {
+              console.error("profilesテーブルが存在しません。データベーススキーマを確認してください");
+            } else if (profileError.code === "42501") {
+              console.error("権限エラー: プロフィール取得の権限がありません");
+            }
+            
             setProfile(null);
           }
         } else {
@@ -128,7 +141,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("createProfile: Profile data to insert:", profileToInsert);
 
-      const { data: newProfileData, error: createError } = await (supabase as any)
+      const { data: newProfileData, error: createError } = await (
+        supabase as any
+      )
         .from("profiles")
         .insert(profileToInsert)
         .select()
@@ -141,18 +156,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           message: createError.message,
           details: createError.details,
           hint: createError.hint,
-          profileData: profileToInsert
+          profileData: profileToInsert,
         });
-        
+
         // 具体的なエラーメッセージを返す
-        if (createError.code === '42501') {
-          console.error("権限エラー: RLS (Row Level Security) ポリシーを確認してください");
-        } else if (createError.code === '23505') {
+        if (createError.code === "42501") {
+          console.error(
+            "権限エラー: RLS (Row Level Security) ポリシーを確認してください"
+          );
+        } else if (createError.code === "23505") {
           console.error("重複エラー: プロフィールが既に存在します");
-        } else if (createError.code === '23502') {
-          console.error("必須フィールドエラー: 必要なフィールドが不足しています");
+        } else if (createError.code === "23502") {
+          console.error(
+            "必須フィールドエラー: 必要なフィールドが不足しています"
+          );
+        } else if (createError.code === "PGRST116") {
+          console.error("テーブルが見つかりません: profilesテーブルが存在しない可能性があります");
+        } else if (createError.message?.includes("relation \"profiles\" does not exist")) {
+          console.error("profilesテーブルが存在しません。データベーススキーマを確認してください");
         }
-        
+
         return false;
       } else {
         console.log(

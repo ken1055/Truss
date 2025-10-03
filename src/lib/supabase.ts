@@ -6,7 +6,9 @@ import type { Database, MemberProfile, EventParticipant } from "./types";
 
 // グローバルなシングルトンパターンでSupabaseクライアントを管理
 declare global {
-  var __supabase_client__: ReturnType<typeof createBrowserClient<Database>> | undefined;
+  var __supabase_client__:
+    | ReturnType<typeof createBrowserClient<Database>>
+    | undefined;
 }
 
 // Supabaseクライアントの作成（クライアントサイド用）
