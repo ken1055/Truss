@@ -101,22 +101,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("createProfile: Creating profile for user:", user.id);
 
+      // プロフィールデータの検証
+      const profileToInsert = {
+        id: user.id,
+        email: user.email || "",
+        name: profileData.name?.trim() || 
+              user.user_metadata?.name?.trim() || 
+              user.email?.split("@")[0] || 
+              "ユーザー",
+        student_type: profileData.student_type || "international",
+        ...(profileData.gender && { gender: profileData.gender }),
+        ...(profileData.bio?.trim() && { bio: profileData.bio.trim() }),
+      };
+
+      console.log("createProfile: Profile data to insert:", profileToInsert);
+
       const { data: newProfileData, error: createError } = await (
         supabase as any
       )
         .from("profiles")
-        .insert({
-          id: user.id,
-          email: user.email || "",
-          name:
-            profileData.name ||
-            user.user_metadata?.name ||
-            user.email?.split("@")[0] ||
-            "ユーザー",
-          student_type: profileData.student_type || "international",
-          gender: profileData.gender,
-          bio: profileData.bio,
-        })
+        .insert(profileToInsert)
         .select()
         .single();
 

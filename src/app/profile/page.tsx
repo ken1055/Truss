@@ -79,9 +79,23 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     setSaving(true);
+    setMessage("");
 
     if (!user) {
       setMessage("ユーザーが認証されていません。");
+      setSaving(false);
+      return;
+    }
+
+    // フォームバリデーション
+    if (!formData.name?.trim()) {
+      setMessage("お名前は必須項目です。");
+      setSaving(false);
+      return;
+    }
+
+    if (!formData.student_type) {
+      setMessage("学生区分は必須項目です。");
       setSaving(false);
       return;
     }
@@ -98,6 +112,7 @@ export default function ProfilePage() {
         setMessage("プロフィールを更新しました");
       } else {
         // プロフィールが存在しない場合は作成
+        console.log("Profile page: Creating profile with data:", formData);
         const success = await createProfile(formData);
         if (success) {
           setMessage("プロフィールを作成しました！ダッシュボードに戻ります...");
@@ -105,7 +120,7 @@ export default function ProfilePage() {
             router.push("/dashboard");
           }, 2000);
         } else {
-          setMessage("プロフィールの作成に失敗しました");
+          setMessage("プロフィールの作成に失敗しました。コンソールでエラーの詳細を確認してください。");
         }
       }
     } catch (error: unknown) {
