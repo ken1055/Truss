@@ -120,7 +120,9 @@ export default function ProfilePage() {
             router.push("/dashboard");
           }, 2000);
         } else {
-          setMessage("プロフィールの作成に失敗しました。コンソールでエラーの詳細を確認してください。");
+          setMessage(
+            "プロフィールの作成に失敗しました。コンソールでエラーの詳細を確認してください。"
+          );
         }
       }
     } catch (error: unknown) {

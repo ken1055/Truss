@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { createClientComponentClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import type { MemberProfile, UserRole, Profile } from "@/lib/types";
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const supabase = createClientComponentClient();
 
-  const refreshProfileForUser = async (targetUser: any) => {
+  const refreshProfileForUser = useCallback(async (targetUser: any) => {
     if (!targetUser) {
       console.log("refreshProfileForUser: user not provided");
       return;
@@ -43,11 +43,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // プロフィール情報の取得
       console.log("refreshProfileForUser: Fetching profiles...");
-      const { data: profileData, error: profileError } = await supabase
+      
+      // タイムアウト付きでプロフィールを取得
+      const profilePromise = supabase
         .from("profiles")
         .select("*")
         .eq("id", targetUser.id)
         .single();
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+      );
+
+      const { data: profileData, error: profileError } = await Promise.race([
+        profilePromise,
+        timeoutPromise
+      ]) as any;
 
       console.log("refreshProfileForUser: Profile fetch result:", {
         profileData,
@@ -80,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
       setRoles([]);
     }
-  };
+  }, [supabase]);
 
   const refreshProfile = async () => {
     if (!user) {
@@ -105,10 +116,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const profileToInsert = {
         id: user.id,
         email: user.email || "",
-        name: profileData.name?.trim() || 
-              user.user_metadata?.name?.trim() || 
-              user.email?.split("@")[0] || 
-              "ユーザー",
+        name:
+          profileData.name?.trim() ||
+          user.user_metadata?.name?.trim() ||
+          user.email?.split("@")[0] ||
+          "ユーザー",
         student_type: profileData.student_type || "international",
         ...(profileData.gender && { gender: profileData.gender }),
         ...(profileData.bio?.trim() && { bio: profileData.bio.trim() }),
@@ -142,6 +154,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // 初期認証状態の取得
     const getUser = async () => {
       console.log("getUser: Starting initial auth check");
@@ -151,6 +165,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+
+        if (!isMounted) return;
 
         console.log(
           "getUser: Current user:",
@@ -168,8 +184,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("認証状態取得エラー:", error);
       }
 
-      console.log("getUser: Setting loading to false");
-      setLoading(false);
+      if (isMounted) {
+        console.log("getUser: Setting loading to false");
+        setLoading(false);
+      }
     };
 
     getUser();
@@ -179,6 +197,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
+      if (!isMounted) return;
+
       console.log("Auth state changed:", {
         event,
         hasSession: !!session,
@@ -197,15 +217,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRoles([]);
       }
 
-      console.log("Auth state change: Setting loading to false");
-      setLoading(false);
+      if (isMounted) {
+        console.log("Auth state change: Setting loading to false");
+        setLoading(false);
+      }
     });
 
     return () => {
       console.log("Unsubscribing from auth state changes");
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase, refreshProfileForUser]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
