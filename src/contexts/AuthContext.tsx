@@ -47,16 +47,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         targetUser.id
       );
 
-      try {
-        // プロフィール情報の取得
-        console.log("refreshProfileForUser: Fetching profiles...");
+        try {
+          // プロフィール情報の取得
+          console.log("refreshProfileForUser: Fetching profiles...");
 
-        // プロフィール情報の取得（タイムアウトを5秒に短縮）
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", targetUser.id)
-          .single();
+          // タイムアウト付きでプロフィール取得
+          const profilePromise = supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", targetUser.id)
+            .single();
+
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Profile fetch timeout after 5 seconds")), 5000)
+          );
+
+          const { data: profileData, error: profileError } = await Promise.race([
+            profilePromise,
+            timeoutPromise
+          ]) as any;
 
         console.log("refreshProfileForUser: Profile fetch result:", {
           profileData,
@@ -75,16 +84,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               error: profileError,
               code: profileError.code,
               message: profileError.message,
-              userId: targetUser.id
+              userId: targetUser.id,
             });
-            
+
             // 具体的なエラーメッセージ
-            if (profileError.message?.includes("relation \"profiles\" does not exist")) {
-              console.error("profilesテーブルが存在しません。データベーススキーマを確認してください");
+            if (
+              profileError.message?.includes(
+                'relation "profiles" does not exist'
+              )
+            ) {
+              console.error(
+                "profilesテーブルが存在しません。データベーススキーマを確認してください"
+              );
             } else if (profileError.code === "42501") {
               console.error("権限エラー: プロフィール取得の権限がありません");
             }
-            
+
             setProfile(null);
           }
         } else {
@@ -171,9 +186,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             "必須フィールドエラー: 必要なフィールドが不足しています"
           );
         } else if (createError.code === "PGRST116") {
-          console.error("テーブルが見つかりません: profilesテーブルが存在しない可能性があります");
-        } else if (createError.message?.includes("relation \"profiles\" does not exist")) {
-          console.error("profilesテーブルが存在しません。データベーススキーマを確認してください");
+          console.error(
+            "テーブルが見つかりません: profilesテーブルが存在しない可能性があります"
+          );
+        } else if (
+          createError.message?.includes('relation "profiles" does not exist')
+        ) {
+          console.error(
+            "profilesテーブルが存在しません。データベーススキーマを確認してください"
+          );
         }
 
         return false;
