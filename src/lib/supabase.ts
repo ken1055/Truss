@@ -4,16 +4,17 @@ import type { Database, MemberProfile, EventParticipant } from "./types";
 
 // 型定義は@/lib/typesに移動済み
 
-// シングルトンパターンでSupabaseクライアントを管理
-let supabaseClientInstance: ReturnType<
-  typeof createBrowserClient<Database>
-> | null = null;
+// グローバルなシングルトンパターンでSupabaseクライアントを管理
+declare global {
+  var __supabase_client__: ReturnType<typeof createBrowserClient<Database>> | undefined;
+}
 
 // Supabaseクライアントの作成（クライアントサイド用）
 export const createClientComponentClient = () => {
-  // 既存のインスタンスがある場合はそれを返す
-  if (supabaseClientInstance) {
-    return supabaseClientInstance;
+  // グローバルな既存のインスタンスがある場合はそれを返す
+  if (globalThis.__supabase_client__) {
+    console.log("Using existing Supabase client instance");
+    return globalThis.__supabase_client__;
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,12 +26,13 @@ export const createClientComponentClient = () => {
     );
   }
 
-  // 新しいインスタンスを作成してキャッシュ
-  supabaseClientInstance = createBrowserClient<Database>(
+  console.log("Creating new Supabase client instance");
+  // 新しいインスタンスを作成してグローバルにキャッシュ
+  globalThis.__supabase_client__ = createBrowserClient<Database>(
     supabaseUrl,
     supabaseKey
   );
-  return supabaseClientInstance;
+  return globalThis.__supabase_client__;
 };
 
 // Supabaseクライアントの作成（サーバーサイド用）

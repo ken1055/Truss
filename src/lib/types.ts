@@ -229,7 +229,14 @@ export interface Database {
     Tables: {
       profiles: {
         Row: Profile;
-        Insert: Omit<Profile, "created_at" | "updated_at">;
+        Insert: Omit<Profile, "created_at" | "updated_at"> & {
+          id: string;
+          email?: string;
+          name: string;
+          student_type: "international" | "domestic";
+          gender?: "male" | "female" | "other" | "prefer_not_to_say";
+          bio?: string;
+        };
         Update: Partial<Omit<Profile, "id" | "created_at" | "updated_at">>;
       };
       fiscal_years: {

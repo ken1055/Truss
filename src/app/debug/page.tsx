@@ -37,18 +37,45 @@ export default function DebugPage() {
           return;
         }
 
-        // 2. データベース接続テスト（簡単なクエリ）
+        // 2. データベース接続テスト（profilesテーブル）
         const { data: dbTest, error: dbError } = await supabase
-          .from("member_profiles")
-          .select("count")
+          .from("profiles")
+          .select("id")
           .limit(1);
 
         if (dbError) {
-          setConnectionTest(`データベース接続エラー: ${dbError.message}`);
+          setConnectionTest(`データベース接続エラー: ${dbError.message}\n詳細: ${JSON.stringify(dbError, null, 2)}`);
           return;
         }
 
-        setConnectionTest("✅ Supabase接続成功！");
+        // 3. 現在のユーザー情報取得テスト
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        let userInfo = "";
+        if (userError) {
+          userInfo = `\nユーザー取得エラー: ${userError.message}`;
+        } else if (user) {
+          userInfo = `\n現在のユーザー: ${user.id} (${user.email})`;
+          
+          // 4. 現在のユーザーのプロフィール取得テスト
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .single();
+            
+          if (profileError) {
+            userInfo += `\nプロフィール取得エラー: ${profileError.message} (コード: ${profileError.code})`;
+          } else if (profileData) {
+            userInfo += `\nプロフィール: ${JSON.stringify(profileData, null, 2)}`;
+          } else {
+            userInfo += `\nプロフィール: 見つかりません`;
+          }
+        } else {
+          userInfo = `\nユーザー: ログインしていません`;
+        }
+
+        setConnectionTest(`✅ Supabase接続成功！${userInfo}`);
       } catch (error) {
         setConnectionTest(
           `接続テスト失敗: ${
