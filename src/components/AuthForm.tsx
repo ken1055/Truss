@@ -73,32 +73,12 @@ export default function AuthForm({ mode }: AuthFormProps) {
         if (error) {
           throw error;
         } else if (data.user) {
-          // プロフィールテーブルにデータを挿入
-          console.log("Creating profile for user:", data.user.id);
-          const { error: profileError } = await (supabase as any)
-            .from("profiles")
-            .insert([
-              {
-                id: data.user.id,
-                email: email,
-                name: name,
-                student_type: studentType,
-              },
-            ]);
-
-          if (profileError) {
-            console.error("Profile creation error:", profileError);
-            setMessage(
-              "アカウントは作成されましたが、プロフィールの作成に失敗しました。"
-            );
-          } else {
-            setMessage(
-              "アカウントが作成されました！ダッシュボードに移動します..."
-            );
-            setTimeout(() => {
-              router.push("/dashboard");
-            }, 2000);
-          }
+          setMessage(
+            "アカウントが作成されました！プロフィール設定に移動します..."
+          );
+          setTimeout(() => {
+            router.push("/profile");
+          }, 2000);
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({

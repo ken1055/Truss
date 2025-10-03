@@ -35,7 +35,14 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">プロフィール情報を読み込んでいます...</p>
+          <h2 className="text-xl font-bold mb-4">プロフィールを作成してください</h2>
+          <p className="text-gray-600 mb-6">アプリを使用するにはプロフィールの作成が必要です。</p>
+          <button
+            onClick={() => router.push("/profile")}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            プロフィールを作成
+          </button>
         </div>
       </div>
     );
@@ -54,16 +61,12 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold">
-                こんにちは、{profile.full_name}さん
+                こんにちは、{profile.name}さん
               </h1>
               <p className="text-sm text-gray-600">
-                {profile.member_category === "undergraduate"
-                  ? "学部生"
-                  : profile.member_category === "graduate"
-                  ? "大学院生"
-                  : profile.member_category === "faculty"
-                  ? "教職員"
-                  : "会員"}
+                {profile.student_type === "international"
+                  ? "留学生"
+                  : "在校生"}
               </p>
             </div>
             <button

@@ -31,15 +31,15 @@ interface Availability {
 }
 
 export default function ProfilePage() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, createProfile } = useAuth();
   const router = useRouter();
   const supabase = createClientComponentClient();
 
   const [formData, setFormData] = useState({
-    full_name: "",
-    department: "",
-    grade: 1,
-    phone_number: "",
+    name: "",
+    student_type: "international" as "international" | "domestic",
+    gender: undefined as "male" | "female" | "other" | "prefer_not_to_say" | undefined,
+    bio: "",
   });
 
   const [languages, setLanguages] = useState<Language[]>([]);
@@ -56,49 +56,21 @@ export default function ProfilePage() {
 
     if (profile) {
       setFormData({
-        full_name: profile.full_name || "",
-        department: profile.department || "",
-        grade: profile.grade || 1,
-        phone_number: profile.phone_number || "",
+        name: profile.name || "",
+        student_type: profile.student_type || "international",
+        gender: profile.gender || undefined,
+        bio: profile.bio || "",
+      });
+    } else if (user) {
+      // プロフィールが存在しない場合、ユーザー情報から初期値を設定
+      setFormData({
+        name: user.user_metadata?.name || user.email?.split("@")[0] || "",
+        student_type: user.user_metadata?.student_type || "international",
+        gender: undefined,
+        bio: "",
       });
     }
-
-    // データの取得
-    const fetchData = async () => {
-      if (user) {
-        try {
-          // 言語データの取得
-          const { data: languagesData } = await supabase
-            .from("languages")
-            .select("*")
-            .order("name");
-          setLanguages(languagesData || []);
-
-          // ユーザー言語スキルの取得
-          const { data: userLanguagesData } = await supabase
-            .from("user_languages")
-            .select(`
-              *,
-              language:languages(*)
-            `)
-            .eq("user_id", user.id);
-          setUserLanguages(userLanguagesData || []);
-
-          // 空き時間の取得
-          const { data: availabilityData } = await supabase
-            .from("availability")
-            .select("*")
-            .eq("user_id", user.id)
-            .order("day_of_week");
-          setAvailability(availabilityData || []);
-        } catch (error) {
-          console.error("データ取得エラー:", error);
-        }
-      }
-    };
-
-    fetchData();
-  }, [user, profile, loading, router, supabase]);
+  }, [user, profile, loading, router]);
 
   const handleSaveProfile = async () => {
     setSaving(true);
@@ -110,13 +82,27 @@ export default function ProfilePage() {
     }
 
     try {
-      const { error } = await (supabase.from("member_profiles") as any).upsert({
-        user_id: user.id,
-        ...formData,
-      });
+      if (profile) {
+        // プロフィールが存在する場合は更新
+        const { error } = await (supabase as any)
+          .from("profiles")
+          .update(formData)
+          .eq("id", user.id);
 
-      if (error) throw error;
-      setMessage("プロフィールを更新しました");
+        if (error) throw error;
+        setMessage("プロフィールを更新しました");
+      } else {
+        // プロフィールが存在しない場合は作成
+        const success = await createProfile(formData);
+        if (success) {
+          setMessage("プロフィールを作成しました");
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 2000);
+        } else {
+          setMessage("プロフィールの作成に失敗しました");
+        }
+      }
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
@@ -161,68 +147,74 @@ export default function ProfilePage() {
 
         {/* 基本情報 */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">基本情報</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            {profile ? "プロフィール編集" : "プロフィール作成"}
+          </h2>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                お名前
+                お名前 *
               </label>
               <input
                 type="text"
-                value={formData.full_name}
+                value={formData.name}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, full_name: e.target.value }))
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                学部・学科
-              </label>
-              <input
-                type="text"
-                value={formData.department}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, department: e.target.value }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                学年
+                学生区分 *
               </label>
               <select
-                value={formData.grade}
+                value={formData.student_type}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, grade: parseInt(e.target.value) }))
+                  setFormData((prev) => ({ ...prev, student_type: e.target.value as "international" | "domestic" }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required
               >
-                <option value={1}>1年生</option>
-                <option value={2}>2年生</option>
-                <option value={3}>3年生</option>
-                <option value={4}>4年生</option>
-                <option value={5}>5年生</option>
-                <option value={6}>6年生</option>
+                <option value="international">留学生</option>
+                <option value="domestic">在校生</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                電話番号
+                性別
               </label>
-              <input
-                type="tel"
-                value={formData.phone_number}
+              <select
+                value={formData.gender || ""}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, phone_number: e.target.value }))
+                  setFormData((prev) => ({ ...prev, gender: e.target.value || undefined as any }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">選択してください</option>
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+                <option value="other">その他</option>
+                <option value="prefer_not_to_say">回答しない</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                自己紹介
+              </label>
+              <textarea
+                value={formData.bio}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, bio: e.target.value }))
+                }
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="趣味や興味のあることなどを自由に書いてください"
               />
             </div>
           </div>
@@ -233,7 +225,7 @@ export default function ProfilePage() {
             className="mt-6 flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
           >
             <Save className="w-4 h-4 mr-2" />
-            {saving ? "保存中..." : "保存"}
+            {saving ? (profile ? "更新中..." : "作成中...") : (profile ? "更新" : "作成")}
           </button>
         </div>
 

@@ -3,15 +3,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { createClientComponentClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
-import type { MemberProfile, UserRole } from "@/lib/types";
+import type { MemberProfile, UserRole, Profile } from "@/lib/types";
 
 interface AuthContextType {
   user: User | null;
-  profile: MemberProfile | null;
+  profile: Profile | null;
   roles: UserRole[];
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  createProfile: (profileData: Partial<Profile>) => Promise<boolean>;
   hasRole: (role: UserRole) => boolean;
   isAdmin: boolean;
   isAccountant: boolean;
@@ -22,7 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<MemberProfile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,53 +55,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (profileError) {
-        console.error("プロフィール取得エラー:", profileError);
-        
-        // プロフィールが存在しない場合（404エラー）、新しいプロフィールを作成
-        if (profileError.code === 'PGRST116') {
-          console.log("refreshProfileForUser: Profile not found, creating new profile...");
-          
-          const { data: newProfileData, error: createError } = await (supabase as any)
-            .from("profiles")
-            .insert({
-              id: targetUser.id,
-              email: targetUser.email || '',
-              name: targetUser.user_metadata?.name || targetUser.email?.split('@')[0] || 'ユーザー',
-              student_type: 'international' // デフォルト値
-            })
-            .select()
-            .single();
-
-          if (createError) {
-            console.error("プロフィール作成エラー:", createError);
-            setProfile(null);
-          } else {
-            console.log("refreshProfileForUser: New profile created:", newProfileData);
-            setProfile(newProfileData);
-          }
+        // プロフィールが存在しない場合（404エラー）は、単純にnullを設定
+        if (profileError.code === "PGRST116") {
+          console.log("refreshProfileForUser: Profile not found, setting profile to null");
+          setProfile(null);
         } else {
+          console.error("プロフィール取得エラー:", profileError);
           setProfile(null);
         }
       } else {
+        console.log("refreshProfileForUser: Profile found:", profileData);
         setProfile(profileData);
       }
 
       // 役割情報の取得（現在はprofilesテーブルのみなので空配列を設定）
       console.log("refreshProfileForUser: Setting default roles...");
-      const rolesData: any[] = [];
-      const rolesError: any = null;
-
-      console.log("refreshProfileForUser: Roles fetch result:", {
-        rolesData,
-        rolesError,
-      });
-
-      if (rolesError) {
-        console.error("役割取得エラー:", rolesError);
-        setRoles([]);
-      } else {
-        setRoles(rolesData?.map((r: any) => r.role) || []);
-      }
+      setRoles([]);
 
       console.log("refreshProfileForUser: Profile refresh completed");
     } catch (error) {
@@ -116,6 +86,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     await refreshProfileForUser(user);
+  };
+
+  const createProfile = async (profileData: Partial<Profile>): Promise<boolean> => {
+    if (!user) {
+      console.log("createProfile: user not available");
+      return false;
+    }
+
+    try {
+      console.log("createProfile: Creating profile for user:", user.id);
+      
+      const { data: newProfileData, error: createError } = await (supabase as any)
+        .from("profiles")
+        .insert({
+          id: user.id,
+          email: user.email || "",
+          name: profileData.name || user.user_metadata?.name || user.email?.split("@")[0] || "ユーザー",
+          student_type: profileData.student_type || "international",
+          gender: profileData.gender,
+          bio: profileData.bio,
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("プロフィール作成エラー:", createError);
+        return false;
+      } else {
+        console.log("createProfile: Profile created successfully:", newProfileData);
+        setProfile(newProfileData);
+        return true;
+      }
+    } catch (error) {
+      console.error("プロフィール作成エラー:", error);
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -156,34 +162,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
-        console.log("Auth state changed:", {
-          event,
-          hasSession: !!session,
-          hasUser: !!session?.user,
-        });
-
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          console.log(
-            "Auth state change: User logged in, refreshing profile..."
-          );
-          // session.userを直接使用してプロフィールを取得
-          await refreshProfileForUser(session.user);
-        } else {
-          console.log("Auth state change: No user, clearing profile");
-          setProfile(null);
-          setRoles([]);
-        }
-
-        console.log("Auth state change: Setting loading to false");
-        setLoading(false);
+      console.log("Auth state changed:", {
+        event,
+        hasSession: !!session,
+        hasUser: !!session?.user,
       });
 
-      return () => {
-        console.log("Unsubscribing from auth state changes");
-        subscription.unsubscribe();
-      };
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        console.log("Auth state change: User logged in, refreshing profile...");
+        // session.userを直接使用してプロフィールを取得
+        await refreshProfileForUser(session.user);
+      } else {
+        console.log("Auth state change: No user, clearing profile");
+        setProfile(null);
+        setRoles([]);
+      }
+
+      console.log("Auth state change: Setting loading to false");
+      setLoading(false);
+    });
+
+    return () => {
+      console.log("Unsubscribing from auth state changes");
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
@@ -208,6 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signOut,
     refreshProfile,
+    createProfile,
     hasRole,
     isAdmin,
     isAccountant,
