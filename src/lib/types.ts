@@ -227,6 +227,11 @@ export interface Availability {
 export interface Database {
   public: {
     Tables: {
+      profiles: {
+        Row: Profile;
+        Insert: Omit<Profile, "created_at" | "updated_at">;
+        Update: Partial<Omit<Profile, "id" | "created_at" | "updated_at">>;
+      };
       fiscal_years: {
         Row: FiscalYear;
         Insert: Omit<FiscalYear, "id" | "created_at" | "updated_at">;

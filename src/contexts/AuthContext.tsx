@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (profileError.code === 'PGRST116') {
           console.log("refreshProfileForUser: Profile not found, creating new profile...");
           
-          const { data: newProfileData, error: createError } = await supabase
+          const { data: newProfileData, error: createError } = await (supabase as any)
             .from("profiles")
             .insert({
               id: targetUser.id,
@@ -184,7 +184,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("Unsubscribing from auth state changes");
         subscription.unsubscribe();
       };
-    }
   }, []);
 
   const signOut = async () => {
