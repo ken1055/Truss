@@ -22,7 +22,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   const router = useRouter();
 
-  // 環境変数の確認
+  // Supabaseクライアントの作成（シングルトンパターンを使用）
+  const supabase = createClientComponentClient();
+
+  // 環境変数の確認（デバッグ用）
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -31,46 +34,28 @@ export default function AuthForm({ mode }: AuthFormProps) {
     hasKey: !!supabaseKey,
     urlPrefix: supabaseUrl?.substring(0, 30) + "...",
     keyPrefix: supabaseKey?.substring(0, 30) + "...",
-    fullUrl: supabaseUrl, // 完全なURLを表示（デバッグ用）
     nodeEnv: process.env.NODE_ENV,
   });
 
-  // Supabaseクライアントの作成（エラーハンドリング付き）
-  let supabase: ReturnType<typeof createClientComponentClient> | null = null;
-  try {
-    supabase = createClientComponentClient();
-    console.log("Supabase client created successfully");
+  console.log("Supabase client created successfully");
 
-    // 接続テスト
-    if (supabase) {
-      supabase.auth
-        .getSession()
-        .then(({ data, error }) => {
-          console.log("Supabase connection test:", {
-            hasSession: !!data.session,
-            error: error?.message,
-          });
-        })
-        .catch((testError) => {
-          console.error("Supabase connection test failed:", testError);
-        });
-    }
-  } catch (error) {
-    console.error("Supabase client creation failed:", error);
-  }
+  // 接続テスト
+  supabase.auth
+    .getSession()
+    .then(({ data, error }) => {
+      console.log("Supabase connection test:", {
+        hasSession: !!data.session,
+        error: error?.message,
+      });
+    })
+    .catch((testError) => {
+      console.error("Supabase connection test failed:", testError);
+    });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
-
-    if (!supabase) {
-      setMessage(
-        "エラー: Supabaseクライアントが初期化されていません。環境変数を確認してください。"
-      );
-      setLoading(false);
-      return;
-    }
 
     try {
       if (mode === "signup") {
@@ -90,7 +75,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
         } else if (data.user) {
           // プロフィールテーブルにデータを挿入
           console.log("Creating profile for user:", data.user.id);
-          const { error: profileError } = await (supabase as any)
+          const { error: profileError } = await supabase
             .from("profiles")
             .insert([
               {
@@ -103,7 +88,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
           if (profileError) {
             console.error("Profile creation error:", profileError);
-            setMessage("アカウントは作成されましたが、プロフィールの作成に失敗しました。");
+            setMessage(
+              "アカウントは作成されましたが、プロフィールの作成に失敗しました。"
+            );
           } else {
             setMessage(
               "アカウントが作成されました！ダッシュボードに移動します..."

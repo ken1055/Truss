@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // プロフィール情報の取得
       console.log("refreshProfileForUser: Fetching profiles...");
-      const { data: profileData, error: profileError } = await (supabase as any)
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", targetUser.id)
@@ -55,8 +55,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profileError) {
         console.error("プロフィール取得エラー:", profileError);
-        // プロフィールが存在しない場合は空のプロフィールを設定
-        setProfile(null);
+        
+        // プロフィールが存在しない場合（404エラー）、新しいプロフィールを作成
+        if (profileError.code === 'PGRST116') {
+          console.log("refreshProfileForUser: Profile not found, creating new profile...");
+          
+          const { data: newProfileData, error: createError } = await supabase
+            .from("profiles")
+            .insert({
+              id: targetUser.id,
+              email: targetUser.email || '',
+              name: targetUser.user_metadata?.name || targetUser.email?.split('@')[0] || 'ユーザー',
+              student_type: 'international' // デフォルト値
+            })
+            .select()
+            .single();
+
+          if (createError) {
+            console.error("プロフィール作成エラー:", createError);
+            setProfile(null);
+          } else {
+            console.log("refreshProfileForUser: New profile created:", newProfileData);
+            setProfile(newProfileData);
+          }
+        } else {
+          setProfile(null);
+        }
       } else {
         setProfile(profileData);
       }
@@ -99,12 +123,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const getUser = async () => {
       console.log("getUser: Starting initial auth check");
 
-      if (!supabase) {
-        console.log("getUser: No supabase client");
-        setLoading(false);
-        return;
-      }
-
       try {
         console.log("getUser: Fetching current user...");
         const {
@@ -134,11 +152,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     getUser();
 
     // 認証状態の変更を監視
-    if (supabase) {
-      console.log("Setting up auth state change listener");
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
+    console.log("Setting up auth state change listener");
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
         console.log("Auth state changed:", {
           event,
           hasSession: !!session,
@@ -168,12 +185,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         subscription.unsubscribe();
       };
     }
-  }, [supabase]);
+  }, []);
 
   const signOut = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
+    await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
     setRoles([]);
