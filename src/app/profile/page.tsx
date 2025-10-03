@@ -38,7 +38,12 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     name: "",
     student_type: "international" as "international" | "domestic",
-    gender: undefined as "male" | "female" | "other" | "prefer_not_to_say" | undefined,
+    gender: undefined as
+      | "male"
+      | "female"
+      | "other"
+      | "prefer_not_to_say"
+      | undefined,
     bio: "",
   });
 
@@ -95,7 +100,7 @@ export default function ProfilePage() {
         // プロフィールが存在しない場合は作成
         const success = await createProfile(formData);
         if (success) {
-          setMessage("プロフィールを作成しました");
+          setMessage("プロフィールを作成しました！ダッシュボードに戻ります...");
           setTimeout(() => {
             router.push("/dashboard");
           }, 2000);
@@ -150,7 +155,7 @@ export default function ProfilePage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {profile ? "プロフィール編集" : "プロフィール作成"}
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -174,7 +179,12 @@ export default function ProfilePage() {
               <select
                 value={formData.student_type}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, student_type: e.target.value as "international" | "domestic" }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    student_type: e.target.value as
+                      | "international"
+                      | "domestic",
+                  }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
@@ -191,7 +201,10 @@ export default function ProfilePage() {
               <select
                 value={formData.gender || ""}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, gender: e.target.value || undefined as any }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    gender: e.target.value || (undefined as any),
+                  }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
@@ -225,14 +238,22 @@ export default function ProfilePage() {
             className="mt-6 flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
           >
             <Save className="w-4 h-4 mr-2" />
-            {saving ? (profile ? "更新中..." : "作成中...") : (profile ? "更新" : "作成")}
+            {saving
+              ? profile
+                ? "更新中..."
+                : "作成中..."
+              : profile
+              ? "更新"
+              : "作成"}
           </button>
         </div>
 
         {/* 言語スキル */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">言語スキル</h2>
-          
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            言語スキル
+          </h2>
+
           {userLanguages.length === 0 ? (
             <p className="text-gray-500">言語スキルが登録されていません</p>
           ) : (
@@ -243,7 +264,9 @@ export default function ProfilePage() {
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
                   <div>
-                    <span className="font-medium">{userLang.language.name}</span>
+                    <span className="font-medium">
+                      {userLang.language.name}
+                    </span>
                     <span className="ml-2 text-sm text-gray-600">
                       ({userLang.proficiency_level})
                     </span>
@@ -257,7 +280,7 @@ export default function ProfilePage() {
         {/* 空き時間 */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">空き時間</h2>
-          
+
           {availability.length === 0 ? (
             <p className="text-gray-500">空き時間が登録されていません</p>
           ) : (
@@ -269,7 +292,12 @@ export default function ProfilePage() {
                 >
                   <div>
                     <span className="font-medium">
-                      {["日", "月", "火", "水", "木", "金", "土"][avail.day_of_week]}曜日
+                      {
+                        ["日", "月", "火", "水", "木", "金", "土"][
+                          avail.day_of_week
+                        ]
+                      }
+                      曜日
                     </span>
                     <span className="ml-2 text-sm text-gray-600">
                       {avail.start_time} - {avail.end_time}

@@ -57,7 +57,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (profileError) {
         // プロフィールが存在しない場合（404エラー）は、単純にnullを設定
         if (profileError.code === "PGRST116") {
-          console.log("refreshProfileForUser: Profile not found, setting profile to null");
+          console.log(
+            "refreshProfileForUser: Profile not found, setting profile to null"
+          );
           setProfile(null);
         } else {
           console.error("プロフィール取得エラー:", profileError);
@@ -88,7 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await refreshProfileForUser(user);
   };
 
-  const createProfile = async (profileData: Partial<Profile>): Promise<boolean> => {
+  const createProfile = async (
+    profileData: Partial<Profile>
+  ): Promise<boolean> => {
     if (!user) {
       console.log("createProfile: user not available");
       return false;
@@ -96,13 +100,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       console.log("createProfile: Creating profile for user:", user.id);
-      
-      const { data: newProfileData, error: createError } = await (supabase as any)
+
+      const { data: newProfileData, error: createError } = await (
+        supabase as any
+      )
         .from("profiles")
         .insert({
           id: user.id,
           email: user.email || "",
-          name: profileData.name || user.user_metadata?.name || user.email?.split("@")[0] || "ユーザー",
+          name:
+            profileData.name ||
+            user.user_metadata?.name ||
+            user.email?.split("@")[0] ||
+            "ユーザー",
           student_type: profileData.student_type || "international",
           gender: profileData.gender,
           bio: profileData.bio,
@@ -114,7 +124,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("プロフィール作成エラー:", createError);
         return false;
       } else {
-        console.log("createProfile: Profile created successfully:", newProfileData);
+        console.log(
+          "createProfile: Profile created successfully:",
+          newProfileData
+        );
         setProfile(newProfileData);
         return true;
       }

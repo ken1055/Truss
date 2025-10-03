@@ -74,10 +74,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
           throw error;
         } else if (data.user) {
           setMessage(
-            "アカウントが作成されました！プロフィール設定に移動します..."
+            "アカウントが作成されました！ダッシュボードに移動します..."
           );
           setTimeout(() => {
-            router.push("/profile");
+            router.push("/dashboard");
           }, 2000);
         }
       } else {

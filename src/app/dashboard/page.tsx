@@ -23,6 +23,11 @@ export default function DashboardPage() {
     }
   }, [user, loading, router]);
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/signin");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -33,29 +38,86 @@ export default function DashboardPage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-bold mb-4">プロフィールを作成してください</h2>
-          <p className="text-gray-600 mb-6">アプリを使用するにはプロフィールの作成が必要です。</p>
-          <button
-            onClick={() => router.push("/profile")}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            プロフィールを作成
-          </button>
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-2xl mx-auto p-4">
+          {/* ヘッダー */}
+          <div className="bg-white rounded-lg shadow p-4 mb-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-xl font-bold">
+                  こんにちは、
+                  {user?.user_metadata?.name ||
+                    user?.email?.split("@")[0] ||
+                    "ユーザー"}
+                  さん
+                </h1>
+                <p className="text-sm text-gray-600">ダッシュボード</p>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+              >
+                ログアウト
+              </button>
+            </div>
+          </div>
+
+          {/* プロフィール作成案内 */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100">
+                  <span className="text-blue-600 font-bold">!</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-blue-900">
+                  プロフィールを作成してください
+                </h3>
+                <p className="mt-2 text-sm text-blue-700">
+                  アプリの機能を利用するには、まずプロフィールの作成が必要です。
+                  お名前、学生区分、自己紹介などを設定しましょう。
+                </p>
+                <div className="mt-4">
+                  <button
+                    onClick={() => router.push("/profile")}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                  >
+                    プロフィールを作成する
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 機能紹介（プロフィール未作成でも表示） */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              利用可能な機能
+            </h2>
+            <div className="space-y-3 text-sm text-gray-600">
+              <div className="flex items-center">
+                <span className="w-2 h-2 bg-gray-300 rounded-full mr-3"></span>
+                <span>イベント参加・グループマッチング</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-2 h-2 bg-gray-300 rounded-full mr-3"></span>
+                <span>言語スキル・空き時間の設定</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-2 h-2 bg-gray-300 rounded-full mr-3"></span>
+                <span>匿名での提案・フィードバック</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/signin");
-  };
-
   return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-2xl mx-auto p-4">
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-2xl mx-auto p-4">
         {/* ヘッダー */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex justify-between items-center">
@@ -64,9 +126,7 @@ export default function DashboardPage() {
                 こんにちは、{profile.name}さん
               </h1>
               <p className="text-sm text-gray-600">
-                {profile.student_type === "international"
-                  ? "留学生"
-                  : "在校生"}
+                {profile.student_type === "international" ? "留学生" : "在校生"}
               </p>
             </div>
             <button
