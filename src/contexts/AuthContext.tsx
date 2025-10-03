@@ -47,25 +47,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         targetUser.id
       );
 
-        try {
-          // プロフィール情報の取得
-          console.log("refreshProfileForUser: Fetching profiles...");
+      try {
+        // プロフィール情報の取得
+        console.log("refreshProfileForUser: Fetching profiles...");
 
-          // タイムアウト付きでプロフィール取得
-          const profilePromise = supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", targetUser.id)
-            .single();
+        // タイムアウト付きでプロフィール取得
+        const profilePromise = supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", targetUser.id)
+          .single();
 
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Profile fetch timeout after 5 seconds")), 5000)
-          );
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Profile fetch timeout after 5 seconds")),
+            5000
+          )
+        );
 
-          const { data: profileData, error: profileError } = await Promise.race([
-            profilePromise,
-            timeoutPromise
-          ]) as any;
+        const { data: profileData, error: profileError } = (await Promise.race([
+          profilePromise,
+          timeoutPromise,
+        ])) as any;
 
         console.log("refreshProfileForUser: Profile fetch result:", {
           profileData,

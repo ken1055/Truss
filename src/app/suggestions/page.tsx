@@ -29,17 +29,23 @@ export default function SuggestionsPage() {
     }
 
     try {
-      // デモモードでは常に成功メッセージ
-      setMessage(
-        "✨ デモモード: 提案を受け付けました！実際のサービスでは運営に匿名で送信されます。"
-      );
+      // データベースに匿名提案を保存
+      const { error: insertError } = await (supabase as any)
+        .from("anonymous_suggestions")
+        .insert({
+          type: activeTab,
+          title: title.trim(),
+          content: content.trim(),
+        });
 
-      // 実際のユーザーがいる場合はデータベースに保存
-      // await (supabase.from("anonymous_suggestions") as any).insert({
-      //   type: activeTab,
-      //   title: title.trim(),
-      //   content: content.trim(),
-      // });
+      if (insertError) {
+        console.error("Anonymous suggestion insert error:", insertError);
+        throw insertError;
+      }
+
+      setMessage(
+        "✅ 提案を受け付けました！運営に匿名で送信されました。ご協力ありがとうございます。"
+      );
 
       // フォームをリセット
       setTitle("");
@@ -70,11 +76,6 @@ export default function SuggestionsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* デモモード通知 */}
-      <div className="bg-yellow-100 border-b px-4 py-2 text-center text-sm text-yellow-800">
-        📝 デモモード - 実際のデータは保存されません
-      </div>
-
       <div className="max-w-2xl mx-auto p-4">
         {/* ヘッダー */}
         <div className="flex items-center mb-6">
@@ -138,7 +139,7 @@ export default function SuggestionsPage() {
               <div
                 className={`mb-4 p-3 rounded-lg text-sm ${
                   message.includes("受け付けました") ||
-                  message.includes("デモモード")
+                  message.includes("✅")
                     ? "bg-green-50 text-green-700"
                     : "bg-red-50 text-red-700"
                 }`}

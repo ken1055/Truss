@@ -14,7 +14,7 @@ declare global {
 // Supabaseクライアントの作成（クライアントサイド用）
 export const createClientComponentClient = () => {
   // ブラウザ環境でのみ実行
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     // サーバーサイドでは基本的なクライアントを返す
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -50,9 +50,9 @@ export const createClientComponentClient = () => {
     {
       auth: {
         persistSession: true,
-        storageKey: 'circle-matching-auth',
-        storage: window.localStorage
-      }
+        storageKey: "circle-matching-auth",
+        storage: window.localStorage,
+      },
     }
   );
   return globalThis.__supabase_client__;

@@ -66,54 +66,64 @@ export default function DebugPage() {
         } else if (user) {
           userInfo = `\n現在のユーザー: ${user.id} (${user.email})`;
 
-        // 4. 現在のユーザーのプロフィール取得テスト（タイムアウト付き）
-        try {
-          const profilePromise = supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", user.id)
-            .single();
+          // 4. 現在のユーザーのプロフィール取得テスト（タイムアウト付き）
+          try {
+            const profilePromise = supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", user.id)
+              .single();
 
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Profile fetch timeout")), 3000)
-          );
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Profile fetch timeout")), 3000)
+            );
 
-          const { data: profileData, error: profileError } = await Promise.race([
-            profilePromise,
-            timeoutPromise
-          ]) as any;
+            const { data: profileData, error: profileError } =
+              (await Promise.race([profilePromise, timeoutPromise])) as any;
 
-          if (profileError) {
-            userInfo += `\nプロフィール取得エラー: ${profileError.message} (コード: ${profileError.code})`;
-            userInfo += `\nエラー詳細: ${JSON.stringify(profileError, null, 2)}`;
-          } else if (profileData) {
-            userInfo += `\nプロフィール: ${JSON.stringify(
-              profileData,
-              null,
-              2
-            )}`;
-          } else {
-            userInfo += `\nプロフィール: 見つかりません`;
+            if (profileError) {
+              userInfo += `\nプロフィール取得エラー: ${profileError.message} (コード: ${profileError.code})`;
+              userInfo += `\nエラー詳細: ${JSON.stringify(
+                profileError,
+                null,
+                2
+              )}`;
+            } else if (profileData) {
+              userInfo += `\nプロフィール: ${JSON.stringify(
+                profileData,
+                null,
+                2
+              )}`;
+            } else {
+              userInfo += `\nプロフィール: 見つかりません`;
+            }
+          } catch (timeoutError) {
+            userInfo += `\nプロフィール取得タイムアウト: ${
+              timeoutError instanceof Error
+                ? timeoutError.message
+                : "Unknown timeout error"
+            }`;
           }
-        } catch (timeoutError) {
-          userInfo += `\nプロフィール取得タイムアウト: ${timeoutError instanceof Error ? timeoutError.message : 'Unknown timeout error'}`;
-        }
 
-        // 5. profilesテーブルの存在確認
-        try {
-          const { data: tableCheck, error: tableError } = await supabase
-            .from("profiles")
-            .select("count")
-            .limit(0);
-          
-          if (tableError) {
-            userInfo += `\nテーブル存在チェック失敗: ${tableError.message}`;
-          } else {
-            userInfo += `\nprofilesテーブル: 存在確認OK`;
+          // 5. profilesテーブルの存在確認
+          try {
+            const { data: tableCheck, error: tableError } = await supabase
+              .from("profiles")
+              .select("count")
+              .limit(0);
+
+            if (tableError) {
+              userInfo += `\nテーブル存在チェック失敗: ${tableError.message}`;
+            } else {
+              userInfo += `\nprofilesテーブル: 存在確認OK`;
+            }
+          } catch (tableCheckError) {
+            userInfo += `\nテーブル存在チェックエラー: ${
+              tableCheckError instanceof Error
+                ? tableCheckError.message
+                : "Unknown error"
+            }`;
           }
-        } catch (tableCheckError) {
-          userInfo += `\nテーブル存在チェックエラー: ${tableCheckError instanceof Error ? tableCheckError.message : 'Unknown error'}`;
-        }
         } else {
           userInfo = `\nユーザー: ログインしていません`;
         }

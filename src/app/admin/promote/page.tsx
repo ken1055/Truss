@@ -36,40 +36,41 @@ export default function AdminPromotePage() {
     }
 
     try {
-      if (!user) {
-        // デモモード
-        setMessage(
-          "✨ デモモード: 管理者昇格を確認しました！実際のサービスではここで管理者権限が付与されます。"
-        );
-        setTimeout(() => {
-          router.push("/admin/dashboard");
-        }, 2000);
-      } else {
-        // プロフィールを管理者に昇格
-        const { error } = await (supabase.from("profiles") as any)
-          .update({
-            role: "admin",
-          })
-          .eq("id", user.id);
+      // プロフィールを管理者に昇格（roleカラムを追加する必要がある）
+      const { error: updateError } = await (supabase as any)
+        .from("profiles")
+        .update({
+          // 現在のprofilesテーブルにはroleカラムがないため、
+          // 一時的にbioフィールドに管理者フラグを設定
+          bio: (profile?.bio || "") + " [ADMIN]",
+        })
+        .eq("id", user.id);
 
-        if (error) throw error;
+      if (updateError) {
+        console.error("Profile update error:", updateError);
+        throw updateError;
+      }
 
-        // ログを記録
-        await (supabase.from("admin_logs") as any).insert({
+      // 管理者ログテーブルが存在する場合はログを記録
+      try {
+        await (supabase as any).from("admin_logs").insert({
           admin_id: user.id,
           action: "admin_promotion",
           target_type: "user",
           target_id: user.id,
           details: { promoted_at: new Date().toISOString() },
         });
-
-        setMessage(
-          "管理者権限が付与されました！管理画面にリダイレクトします..."
-        );
-        setTimeout(() => {
-          router.push("/admin/dashboard");
-        }, 2000);
+      } catch (logError) {
+        console.warn("Admin log insertion failed:", logError);
+        // ログ記録の失敗は昇格処理を止めない
       }
+
+      setMessage(
+        "管理者権限が付与されました！管理画面にリダイレクトします..."
+      );
+      setTimeout(() => {
+        router.push("/admin/dashboard");
+      }, 2000);
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "エラーが発生しました";
@@ -81,11 +82,6 @@ export default function AdminPromotePage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* デモモード通知 */}
-      <div className="bg-yellow-100 border-b px-4 py-2 text-center text-sm text-yellow-800">
-        📝 デモモード - 実際のデータは保存されません
-      </div>
-
       <div className="max-w-md mx-auto p-4">
         {/* ヘッダー */}
         <div className="flex items-center mb-6">
@@ -115,8 +111,7 @@ export default function AdminPromotePage() {
             <div
               className={`mb-4 p-3 rounded-lg text-sm ${
                 message.includes("成功") ||
-                message.includes("付与") ||
-                message.includes("デモモード")
+                message.includes("付与")
                   ? "bg-green-50 text-green-700"
                   : "bg-red-50 text-red-700"
               }`}
@@ -156,10 +151,11 @@ export default function AdminPromotePage() {
             </button>
           </form>
 
-          {/* デモ用ヒント */}
-          <div className="mt-6 p-3 bg-blue-50 rounded-lg">
-            <p className="text-xs text-blue-700">
-              <strong>デモ用パスワード:</strong> circle-admin-2024
+          {/* セキュリティ注意事項 */}
+          <div className="mt-6 p-3 bg-amber-50 rounded-lg">
+            <p className="text-xs text-amber-700">
+              <strong>注意:</strong> 管理者権限は慎重に取り扱ってください。
+              不正使用は禁止されています。
             </p>
           </div>
         </div>

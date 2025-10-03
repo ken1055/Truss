@@ -41,8 +41,7 @@ export default function AdminSuggestionsPage() {
   );
 
   useEffect(() => {
-    // デモモードでは認証チェックをスキップ
-    if (!loading && !user && process.env.NODE_ENV !== "development") {
+    if (!loading && !user) {
       router.push("/signin");
       return;
     }
@@ -114,9 +113,6 @@ export default function AdminSuggestionsPage() {
           console.error("提案データの取得に失敗しました:", error);
           setSuggestions(demoSuggestions);
         }
-      } else {
-        // デモモード
-        setSuggestions(demoSuggestions);
       }
     };
 
@@ -131,23 +127,7 @@ export default function AdminSuggestionsPage() {
     setUpdatingStatus(true);
 
     try {
-      if (!user) {
-        // デモモード
-        setSuggestions((prev) =>
-          prev.map((s) =>
-            s.id === suggestionId
-              ? {
-                  ...s,
-                  status,
-                  admin_response: adminResponse,
-                  updated_at: new Date().toISOString(),
-                }
-              : s
-          )
-        );
-        alert("✨ デモモード: ステータスを更新しました！");
-      } else {
-        const { error } = await (supabase.from("anonymous_suggestions") as any)
+      const { error } = await (supabase.from("anonymous_suggestions") as any)
           .update({
             status,
             admin_response: adminResponse,
@@ -170,7 +150,6 @@ export default function AdminSuggestionsPage() {
               : s
           )
         );
-      }
 
       setSelectedSuggestion(null);
       setResponse("");
@@ -227,8 +206,7 @@ export default function AdminSuggestionsPage() {
     }
   };
 
-  // デモモードでは表示を続行
-  if (!loading && !user && process.env.NODE_ENV !== "development") {
+  if (!loading && !user) {
     return null;
   }
 
@@ -242,11 +220,6 @@ export default function AdminSuggestionsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* デモモード通知 */}
-      <div className="bg-yellow-100 border-b px-4 py-2 text-center text-sm text-yellow-800">
-        📝 デモモード - 実際のデータは保存されません
-      </div>
-
       <div className="max-w-6xl mx-auto p-4">
         {/* ヘッダー */}
         <div className="flex items-center mb-6">
