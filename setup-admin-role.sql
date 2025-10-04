@@ -7,11 +7,12 @@
 ALTER TABLE user_roles DISABLE ROW LEVEL SECURITY;
 
 -- 1. 既存の管理者（bioに[ADMIN]がある）にuser_rolesでadminロールを付与
-INSERT INTO user_roles (user_id, role_name, is_active)
+INSERT INTO user_roles (user_id, role_name, is_active, assigned_by)
 SELECT 
   id as user_id,
   'admin' as role_name,
-  true as is_active
+  true as is_active,
+  id as assigned_by  -- 自分自身を assigned_by に設定（システム管理者として）
 FROM profiles
 WHERE bio LIKE '%[ADMIN]%'
 ON CONFLICT (user_id, role_name) 

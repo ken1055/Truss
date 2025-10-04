@@ -49,6 +49,7 @@ export default function AdminPromotePage() {
           user_id: user.id,
           role_name: "admin",
           is_active: true,
+          assigned_by: user.id, // 自分自身を assigned_by に設定
         });
 
       if (roleError) {
