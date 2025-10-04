@@ -42,18 +42,10 @@ export const createClientComponentClient = () => {
     );
   }
 
-  console.log("Creating new Supabase client instance");
-  // 新しいインスタンスを作成してグローバルにキャッシュ
+  // 新しいインスタンスを作成してグローバルにキャッシュ（デフォルト設定を使用）
   globalThis.__supabase_client__ = createBrowserClient<Database>(
     supabaseUrl,
-    supabaseKey,
-    {
-      auth: {
-        persistSession: true,
-        storageKey: "circle-matching-auth",
-        storage: window.localStorage,
-      },
-    }
+    supabaseKey
   );
   return globalThis.__supabase_client__;
 };

@@ -95,7 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else {
           console.log("refreshProfileForUser: Profile found:", profileData);
-          setProfile(profileData);
+          // 取得できたがnullの場合は明示的にnull設定
+          setProfile(profileData ?? null);
         }
 
         // 役割情報の取得（現在はprofilesテーブルのみなので空配列を設定）
@@ -105,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("refreshProfileForUser: Profile refresh completed");
       } catch (error) {
         console.error("プロフィール取得エラー:", error);
+        // ここで例外を投げない（UIハング回避）
         setProfile(null);
         setRoles([]);
       }
@@ -225,8 +227,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(user);
 
         if (user) {
-          console.log("getUser: User found, refreshing profile...");
-          await refreshProfileForUser(user);
+          console.log(
+            "getUser: User found, refreshing profile in background..."
+          );
+          // プロフィール取得を待たずにバックグラウンドで実行してハングを回避
+          refreshProfileForUser(user).catch((err: unknown) => {
+            console.error("Background profile refresh error:", err);
+          });
         } else {
           console.log("getUser: No user found");
         }
@@ -258,9 +265,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        console.log("Auth state change: User logged in, refreshing profile...");
-        // session.userを直接使用してプロフィールを取得
-        await refreshProfileForUser(session.user);
+        console.log(
+          "Auth state change: User logged in, refreshing profile in background..."
+        );
+        // ハング回避のためバックグラウンド実行
+        refreshProfileForUser(session.user).catch((err: unknown) => {
+          console.error("Background profile refresh error:", err);
+        });
       } else {
         console.log("Auth state change: No user, clearing profile");
         setProfile(null);
