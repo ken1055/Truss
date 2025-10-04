@@ -46,8 +46,13 @@ export default function AdminSuggestionsPage() {
       return;
     }
 
-    // 管理者権限チェック（実際の運用時）
-    if (profile && !roles.includes("admin")) {
+    // 管理者権限チェック（bioフィールドに[ADMIN]が含まれているかチェック）
+    if (profile && !profile.bio?.includes("[ADMIN]")) {
+      console.log("Admin check failed:", {
+        profile,
+        bio: profile.bio,
+        hasAdminFlag: profile.bio?.includes("[ADMIN]"),
+      });
       router.push("/dashboard");
       return;
     }
@@ -210,10 +215,33 @@ export default function AdminSuggestionsPage() {
     return null;
   }
 
-  if (loading) {
+  if (loading || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // 管理者権限がない場合
+  if (!profile.bio?.includes("[ADMIN]")) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-gray-900 mb-2">
+            管理者権限が必要です
+          </h1>
+          <p className="text-gray-600 mb-4">
+            このページにアクセスするには管理者権限が必要です。
+          </p>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            ダッシュボードに戻る
+          </button>
+        </div>
       </div>
     );
   }
