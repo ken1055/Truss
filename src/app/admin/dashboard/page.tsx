@@ -124,9 +124,9 @@ export default function AdminDashboard() {
       title: "メンバー管理",
       description: "ユーザーの管理と権限設定",
       icon: Users,
-      href: null as string | null, // 準備中
+      href: "/admin/members" as string | null,
       color: "blue",
-      comingSoon: true,
+      comingSoon: false,
     },
     {
       title: "提案・フィードバック",

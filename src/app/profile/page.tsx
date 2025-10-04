@@ -38,6 +38,10 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     name: "",
     student_type: "international" as "international" | "domestic",
+    student_id: "",
+    phone: "",
+    department: "",
+    grade: "",
     gender: undefined as
       | "male"
       | "female"
@@ -46,6 +50,10 @@ export default function ProfilePage() {
       | undefined,
     bio: "",
   });
+
+  const [studentCardFile, setStudentCardFile] = useState<File | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [languages, setLanguages] = useState<Language[]>([]);
   const [userLanguages, setUserLanguages] = useState<UserLanguage[]>([]);
@@ -63,6 +71,10 @@ export default function ProfilePage() {
       setFormData({
         name: profile.name || "",
         student_type: profile.student_type || "international",
+        student_id: (profile as any).student_id || "",
+        phone: (profile as any).phone || "",
+        department: (profile as any).department || "",
+        grade: (profile as any).grade || "",
         gender: profile.gender || undefined,
         bio: profile.bio || "",
       });
@@ -71,6 +83,10 @@ export default function ProfilePage() {
       setFormData({
         name: user.user_metadata?.name || user.email?.split("@")[0] || "",
         student_type: user.user_metadata?.student_type || "international",
+        student_id: "",
+        phone: "",
+        department: "",
+        grade: "",
         gender: undefined,
         bio: "",
       });
@@ -100,22 +116,110 @@ export default function ProfilePage() {
       return;
     }
 
+    if (!formData.student_id?.trim()) {
+      setMessage("学籍番号は必須項目です。");
+      setSaving(false);
+      return;
+    }
+
+    if (!formData.phone?.trim()) {
+      setMessage("電話番号は必須項目です。");
+      setSaving(false);
+      return;
+    }
+
+    if (!studentCardFile && !profile) {
+      setMessage("学生証の画像をアップロードしてください。");
+      setSaving(false);
+      return;
+    }
+
     try {
+      let studentCardUrl = "";
+      let profileImageUrl = "";
+
+      // ファイルアップロード処理
+      if (studentCardFile) {
+        setIsUploading(true);
+        const fileExt = studentCardFile.name.split('.').pop();
+        const fileName = `${user.id}/student_card_${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('student-documents')
+          .upload(fileName, studentCardFile);
+
+        if (uploadError) {
+          console.error('Student card upload error:', uploadError);
+          setMessage("学生証のアップロードに失敗しました。");
+          setSaving(false);
+          setIsUploading(false);
+          return;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('student-documents')
+          .getPublicUrl(fileName);
+        
+        studentCardUrl = urlData.publicUrl;
+      }
+
+      if (profileImageFile) {
+        const fileExt = profileImageFile.name.split('.').pop();
+        const fileName = `${user.id}/profile_${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('profile-images')
+          .upload(fileName, profileImageFile);
+
+        if (uploadError) {
+          console.error('Profile image upload error:', uploadError);
+          // プロフィール画像のアップロードエラーは致命的ではない
+        } else {
+          const { data: urlData } = supabase.storage
+            .from('profile-images')
+            .getPublicUrl(fileName);
+          
+          profileImageUrl = urlData.publicUrl;
+        }
+      }
+
+      setIsUploading(false);
+
+      // 会員区分の自動判定
+      let memberType = "regular_student";
+      if (formData.student_id) {
+        // 学籍番号のパターンによる自動判定（例：留学生は特定のパターン）
+        if (formData.student_id.match(/^[A-Z]/)) {
+          memberType = "exchange_student";
+        } else if (formData.student_type === "domestic") {
+          memberType = "japanese_student";
+        }
+      }
+
+      const profileData = {
+        ...formData,
+        member_type: memberType,
+        approval_status: "pending",
+        payment_status: formData.student_type === "international" ? "paid_cash" : "unpaid",
+        ...(studentCardUrl && { student_card_url: studentCardUrl }),
+        ...(profileImageUrl && { profile_image_url: profileImageUrl }),
+      };
+
       if (profile) {
         // プロフィールが存在する場合は更新
         const { error } = await (supabase as any)
           .from("profiles")
-          .update(formData)
+          .update(profileData)
           .eq("id", user.id);
 
         if (error) throw error;
         setMessage("プロフィールを更新しました");
       } else {
         // プロフィールが存在しない場合は作成
-        console.log("Profile page: Creating profile with data:", formData);
-        const success = await createProfile(formData);
+        console.log("Profile page: Creating profile with data:", profileData);
+        const success = await createProfile(profileData);
         if (success) {
-          setMessage("プロフィールを作成しました！ダッシュボードに戻ります...");
+          setMessage("プロフィールを作成しました！承認をお待ちください...");
           setTimeout(() => {
             router.push("/dashboard");
           }, 2000);
@@ -213,6 +317,117 @@ export default function ProfilePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
+                学籍番号 *
+              </label>
+              <input
+                type="text"
+                value={formData.student_id}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, student_id: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="例: 23B1234567"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                電話番号 *
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="例: 090-1234-5678"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                学部・学科
+              </label>
+              <input
+                type="text"
+                value={formData.department}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, department: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="例: 工学部情報工学科"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                学年
+              </label>
+              <select
+                value={formData.grade}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, grade: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">選択してください</option>
+                <option value="1">1年生</option>
+                <option value="2">2年生</option>
+                <option value="3">3年生</option>
+                <option value="4">4年生</option>
+                <option value="master1">修士1年</option>
+                <option value="master2">修士2年</option>
+                <option value="doctor">博士課程</option>
+                <option value="other">その他</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                学生証画像 * {profile ? "(更新する場合のみアップロード)" : ""}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setStudentCardFile(file);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required={!profile}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                学生証の写真をアップロードしてください（承認に必要です）
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                プロフィール画像（任意）
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setProfileImageFile(file);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                プロフィール用の写真（任意）
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 性別
               </label>
               <select
@@ -251,11 +466,13 @@ export default function ProfilePage() {
 
           <button
             onClick={handleSaveProfile}
-            disabled={saving}
+            disabled={saving || isUploading}
             className="mt-6 flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
           >
             <Save className="w-4 h-4 mr-2" />
-            {saving
+            {isUploading
+              ? "アップロード中..."
+              : saving
               ? profile
                 ? "更新中..."
                 : "作成中..."
