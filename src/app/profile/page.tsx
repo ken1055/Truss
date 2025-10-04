@@ -151,12 +151,16 @@ export default function ProfilePage() {
 
           if (uploadError) {
             console.error("Student card upload error:", uploadError);
-            
+
             // バケットが存在しない場合のエラーハンドリング
             if (uploadError.message?.includes("Bucket not found")) {
-              setMessage("ストレージバケットが設定されていません。管理者にお問い合わせください。");
+              setMessage(
+                "ストレージバケットが設定されていません。管理者にお問い合わせください。"
+              );
             } else {
-              setMessage(`学生証のアップロードに失敗しました: ${uploadError.message}`);
+              setMessage(
+                `学生証のアップロードに失敗しました: ${uploadError.message}`
+              );
             }
             setSaving(false);
             setIsUploading(false);
@@ -188,13 +192,15 @@ export default function ProfilePage() {
 
           if (uploadError) {
             console.error("Profile image upload error:", uploadError);
-            
+
             // バケットが存在しない場合のエラーハンドリング
             if (uploadError.message?.includes("Bucket not found")) {
               console.warn("Profile image bucket not found, skipping upload");
               // プロフィール画像のアップロードエラーは致命的ではないので続行
             } else {
-              console.warn(`Profile image upload failed: ${uploadError.message}`);
+              console.warn(
+                `Profile image upload failed: ${uploadError.message}`
+              );
             }
           } else {
             const { data: urlData } = supabase.storage

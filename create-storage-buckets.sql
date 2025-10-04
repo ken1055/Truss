@@ -1,12 +1,9 @@
 -- ===============================================
--- ストレージバケット作成スクリプト
+-- ストレージバケット作成スクリプト（修正版）
 -- ===============================================
 -- このスクリプトはSupabase SQL Editorで実行してください
 
--- 必要な拡張機能の有効化
-CREATE EXTENSION IF NOT EXISTS "storage" SCHEMA "extensions";
-
--- ストレージバケットの作成
+-- ストレージバケットの作成（拡張機能の作成は不要）
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES 
   ('student-documents', 'student-documents', TRUE, 52428800, ARRAY['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']),
