@@ -51,24 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // プロフィール情報の取得
         console.log("refreshProfileForUser: Fetching profiles...");
 
-        // タイムアウト付きでプロフィール取得
-        const profilePromise = supabase
+        // タイムアウトなしで直接取得（タイムアウトが問題を引き起こしている可能性がある）
+        const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", targetUser.id)
-          .maybeSingle(); // single() の代わりに maybeSingle() を使用
-
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error("Profile fetch timeout after 5 seconds")),
-            5000
-          )
-        );
-
-        const { data: profileData, error: profileError } = (await Promise.race([
-          profilePromise,
-          timeoutPromise,
-        ])) as any;
+          .maybeSingle();
 
         console.log("refreshProfileForUser: Profile fetch result:", {
           profileData,
