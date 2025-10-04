@@ -42,33 +42,42 @@ export default function AdminPromotePage() {
     }
 
     try {
-      // プロフィールを管理者に昇格（roleカラムを追加する必要がある）
-      const { error: updateError } = await (supabase as any)
-        .from("profiles")
-        .update({
-          // 現在のprofilesテーブルにはroleカラムがないため、
-          // 一時的にbioフィールドに管理者フラグを設定
-          bio: (profile?.bio || "") + " [ADMIN]",
-        })
-        .eq("id", user.id);
+      // user_rolesテーブルにadminロールを追加
+      const { error: roleError } = await (supabase as any)
+        .from("user_roles")
+        .insert({
+          user_id: user.id,
+          role_name: "admin",
+          is_active: true,
+        });
 
-      if (updateError) {
-        console.error("Profile update error:", updateError);
-        throw updateError;
+      if (roleError) {
+        // 既にロールが存在する場合は更新
+        if (roleError.code === "23505") {
+          const { error: updateError } = await (supabase as any)
+            .from("user_roles")
+            .update({ is_active: true })
+            .eq("user_id", user.id)
+            .eq("role_name", "admin");
+
+          if (updateError) {
+            console.error("Role update error:", updateError);
+            throw updateError;
+          }
+        } else {
+          console.error("Role insert error:", roleError);
+          throw roleError;
+        }
       }
 
-      // 管理者ログテーブルが存在する場合はログを記録
-      try {
-        await (supabase as any).from("admin_logs").insert({
-          admin_id: user.id,
-          action: "admin_promotion",
-          target_type: "user",
-          target_id: user.id,
-          details: { promoted_at: new Date().toISOString() },
-        });
-      } catch (logError) {
-        console.warn("Admin log insertion failed:", logError);
-        // ログ記録の失敗は昇格処理を止めない
+      // 互換性のため、bioフィールドにも[ADMIN]を追加（既に追加されていない場合）
+      if (!profile?.bio?.includes("[ADMIN]")) {
+        await (supabase as any)
+          .from("profiles")
+          .update({
+            bio: (profile?.bio || "") + " [ADMIN]",
+          })
+          .eq("id", user.id);
       }
 
       setMessage("管理者権限が付与されました！管理画面にリダイレクトします...");
