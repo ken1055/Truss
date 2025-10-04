@@ -196,37 +196,18 @@ USING (
 );
 
 -- ========================================
--- 6. user_rolesテーブル
+-- 6. user_rolesテーブル（再帰回避：RLS無効化）
 -- ========================================
+-- user_rolesテーブルは他のテーブルの管理者判定に使われるため、
+-- RLSを無効化してアプリケーション側で制御
 DROP POLICY IF EXISTS "user_roles_read_own" ON user_roles;
 DROP POLICY IF EXISTS "user_roles_read_admin" ON user_roles;
 DROP POLICY IF EXISTS "user_roles_manage_admin" ON user_roles;
+DROP POLICY IF EXISTS "user_roles_read_own_policy" ON user_roles;
+DROP POLICY IF EXISTS "user_roles_manage_policy" ON user_roles;
 
-CREATE POLICY "user_roles_read_own_policy"
-ON user_roles FOR SELECT
-TO authenticated
-USING (
-  auth.uid() = user_id
-  OR
-  EXISTS (
-    SELECT 1 FROM user_roles ur
-    WHERE ur.user_id = auth.uid() 
-    AND ur.role_name = 'admin'
-    AND ur.is_active = true
-  )
-);
-
-CREATE POLICY "user_roles_manage_policy"
-ON user_roles FOR ALL
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM user_roles ur
-    WHERE ur.user_id = auth.uid() 
-    AND ur.role_name = 'admin'
-    AND ur.is_active = true
-  )
-);
+-- user_rolesテーブルのRLSを無効化
+ALTER TABLE user_roles DISABLE ROW LEVEL SECURITY;
 
 -- ========================================
 -- 7. event_participantsテーブル
