@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS no_show_history (
   recorded_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   recorded_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now') NOT NULL
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- ===============================================
@@ -155,13 +155,21 @@ CREATE TABLE IF NOT EXISTS no_show_history (
 -- ===============================================
 
 -- 学生証・プロフィール画像用のストレージバケットを作成
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('student-documents', 'student-documents', TRUE)
-ON CONFLICT (id) DO NOTHING;
+DO $$
+BEGIN
+  -- student-documents バケット作成
+  INSERT INTO storage.buckets (id, name, public)
+  VALUES ('student-documents', 'student-documents', TRUE)
+  ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('profile-images', 'profile-images', TRUE)
-ON CONFLICT (id) DO NOTHING;
+  -- profile-images バケット作成  
+  INSERT INTO storage.buckets (id, name, public)
+  VALUES ('profile-images', 'profile-images', TRUE)
+  ON CONFLICT (id) DO NOTHING;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE NOTICE 'Storage buckets may already exist or storage extension not enabled: %', SQLERRM;
+END $$;
 
 -- ===============================================
 -- セクション9: 初期データの挿入（テーブル作成後）
