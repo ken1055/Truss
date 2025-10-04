@@ -45,18 +45,18 @@ export default function AdminDashboard() {
     }
 
     const fetchStats = async () => {
-      // デモ用統計データ
-      const demoStats = {
-        totalUsers: 45,
-        totalEvents: 8,
-        pendingSuggestions: 3,
-        activeGroups: 12,
+      // デフォルト統計データ
+      const defaultStats = {
+        totalUsers: 0,
+        totalEvents: 0,
+        pendingSuggestions: 0,
+        activeGroups: 0,
       };
 
       if (user) {
         try {
           // 実際のデータを取得
-          const [usersResult, eventsResult, suggestionsResult, groupsResult] =
+          const [usersResult, eventsResult, suggestionsResult] =
             await Promise.all([
               supabase.from("profiles").select("id", { count: "exact" }),
               supabase.from("events").select("id", { count: "exact" }),
@@ -64,20 +64,20 @@ export default function AdminDashboard() {
                 .from("anonymous_suggestions")
                 .select("id", { count: "exact" })
                 .eq("status", "pending"),
-              supabase.from("groups").select("id", { count: "exact" }),
             ]);
 
           setStats({
-            totalUsers: usersResult.count || demoStats.totalUsers,
-            totalEvents: eventsResult.count || demoStats.totalEvents,
-            pendingSuggestions:
-              suggestionsResult.count || demoStats.pendingSuggestions,
-            activeGroups: groupsResult.count || demoStats.activeGroups,
+            totalUsers: usersResult.count || 0,
+            totalEvents: eventsResult.count || 0,
+            pendingSuggestions: suggestionsResult.count || 0,
+            activeGroups: 0, // グループ機能は未実装
           });
         } catch (error) {
           console.error("統計データの取得に失敗しました:", error);
-          setStats(demoStats);
+          setStats(defaultStats);
         }
+      } else {
+        setStats(defaultStats);
       }
     };
 
@@ -124,31 +124,35 @@ export default function AdminDashboard() {
       title: "メンバー管理",
       description: "ユーザーの管理と権限設定",
       icon: Users,
-      href: "/admin/members",
+      href: null as string | null, // 準備中
       color: "blue",
+      comingSoon: true,
     },
     {
       title: "提案・フィードバック",
       description: "匿名の提案とフィードバックの確認",
       icon: MessageSquare,
-      href: "/admin/suggestions",
+      href: "/admin/suggestions" as string | null,
       color: "green",
       badge:
         stats.pendingSuggestions > 0 ? stats.pendingSuggestions : undefined,
+      comingSoon: false,
     },
     {
       title: "イベント管理",
       description: "イベントの作成・編集・削除",
       icon: Calendar,
-      href: "/admin/events",
+      href: null as string | null, // 準備中
       color: "purple",
+      comingSoon: true,
     },
     {
       title: "統計・分析",
       description: "参加状況とマッチング分析",
       icon: BarChart3,
-      href: "/admin/analytics",
+      href: null as string | null, // 準備中
       color: "orange",
+      comingSoon: true,
     },
   ];
 
@@ -213,12 +217,15 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-white rounded-lg shadow p-4 opacity-50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">活動グループ</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {stats.activeGroups}
+                <p className="text-2xl font-bold text-purple-600 flex items-center">
+                  <span className="mr-2">-</span>
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                    準備中
+                  </span>
                 </p>
               </div>
               <BarChart3 className="h-8 w-8 text-purple-600" />
@@ -230,9 +237,17 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {menuItems.map((item) => (
             <button
-              key={item.href}
-              onClick={() => router.push(item.href)}
-              className="bg-white rounded-lg shadow p-6 text-left hover:shadow-lg transition-shadow"
+              key={item.title}
+              onClick={() => {
+                if (item.comingSoon) {
+                  alert("この機能は準備中です。近日公開予定です。");
+                } else if (item.href) {
+                  router.push(item.href);
+                }
+              }}
+              className={`bg-white rounded-lg shadow p-6 text-left hover:shadow-lg transition-shadow relative ${
+                item.comingSoon ? "opacity-75" : ""
+              }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start">
@@ -240,8 +255,13 @@ export default function AdminDashboard() {
                     className={`h-8 w-8 text-${item.color}-600 mr-4 mt-1`}
                   />
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center">
                       {item.title}
+                      {item.comingSoon && (
+                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                          準備中
+                        </span>
+                      )}
                     </h3>
                     <p className="text-sm text-gray-600">{item.description}</p>
                   </div>
