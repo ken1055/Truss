@@ -16,7 +16,7 @@ export default function AdminPromotePage() {
   const [message, setMessage] = useState("");
 
   // 管理者昇格用のパスワード（実際の運用では環境変数から取得）
-  const ADMIN_PASSWORD = "circle-admin-2024";
+  const ADMIN_PASSWORD = "truss_admin_2024";
 
   const handlePromote = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +30,12 @@ export default function AdminPromotePage() {
     }
 
     if (password !== ADMIN_PASSWORD) {
+      console.log("Password mismatch:", {
+        entered: password,
+        expected: ADMIN_PASSWORD,
+        enteredLength: password.length,
+        expectedLength: ADMIN_PASSWORD.length,
+      });
       setMessage("管理者パスワードが正しくありません");
       setLoading(false);
       return;
@@ -65,9 +71,7 @@ export default function AdminPromotePage() {
         // ログ記録の失敗は昇格処理を止めない
       }
 
-      setMessage(
-        "管理者権限が付与されました！管理画面にリダイレクトします..."
-      );
+      setMessage("管理者権限が付与されました！管理画面にリダイレクトします...");
       setTimeout(() => {
         router.push("/admin/dashboard");
       }, 2000);
@@ -110,8 +114,7 @@ export default function AdminPromotePage() {
           {message && (
             <div
               className={`mb-4 p-3 rounded-lg text-sm ${
-                message.includes("成功") ||
-                message.includes("付与")
+                message.includes("成功") || message.includes("付与")
                   ? "bg-green-50 text-green-700"
                   : "bg-red-50 text-red-700"
               }`}

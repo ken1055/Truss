@@ -138,8 +138,7 @@ export default function SuggestionsPage() {
             {message && (
               <div
                 className={`mb-4 p-3 rounded-lg text-sm ${
-                  message.includes("受け付けました") ||
-                  message.includes("✅")
+                  message.includes("受け付けました") || message.includes("✅")
                     ? "bg-green-50 text-green-700"
                     : "bg-red-50 text-red-700"
                 }`}

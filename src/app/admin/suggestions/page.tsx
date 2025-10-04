@@ -128,28 +128,28 @@ export default function AdminSuggestionsPage() {
 
     try {
       const { error } = await (supabase.from("anonymous_suggestions") as any)
-          .update({
-            status,
-            admin_response: adminResponse,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", suggestionId);
+        .update({
+          status,
+          admin_response: adminResponse,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", suggestionId);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // ローカル状態を更新
-        setSuggestions((prev) =>
-          prev.map((s) =>
-            s.id === suggestionId
-              ? {
-                  ...s,
-                  status,
-                  admin_response: adminResponse,
-                  updated_at: new Date().toISOString(),
-                }
-              : s
-          )
-        );
+      // ローカル状態を更新
+      setSuggestions((prev) =>
+        prev.map((s) =>
+          s.id === suggestionId
+            ? {
+                ...s,
+                status,
+                admin_response: adminResponse,
+                updated_at: new Date().toISOString(),
+              }
+            : s
+        )
+      );
 
       setSelectedSuggestion(null);
       setResponse("");
