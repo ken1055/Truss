@@ -47,10 +47,22 @@ export default function AdminFiscalYearsPage() {
         .select("*")
         .order("year", { ascending: false });
 
-      if (error) throw error;
-      setFiscalYears(data as FiscalYear[]);
+      if (error) {
+        console.error("Error fetching fiscal years:", error);
+        throw error;
+      }
+
+      // データの整合性をチェック
+      const validatedData = (data || []).map((year: any) => ({
+        ...year,
+        year: year.year || 0,
+        is_active: year.is_active ?? false
+      }));
+
+      setFiscalYears(validatedData as FiscalYear[]);
     } catch (error) {
       console.error("Error fetching fiscal years:", error);
+      setFiscalYears([]); // エラー時は空配列を設定
     }
   }, [user, supabase]);
 

@@ -64,10 +64,23 @@ export default function AdminFeesPage() {
         )
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setFees(data as FeeMaster[]);
+      if (error) {
+        console.error("Error fetching fees:", error);
+        throw error;
+      }
+
+      // データの整合性をチェック
+      const validatedData = (data || []).map((fee: any) => ({
+        ...fee,
+        amount: fee.amount || 0,
+        is_active: fee.is_active ?? true,
+        fiscal_year: fee.fiscal_year || { year: "不明" }
+      }));
+
+      setFees(validatedData as FeeMaster[]);
     } catch (error) {
       console.error("Error fetching fees:", error);
+      setFees([]); // エラー時は空配列を設定
     }
   }, [user, supabase]);
 
@@ -429,7 +442,7 @@ export default function AdminFeesPage() {
                   fees.map((fee) => (
                     <tr key={fee.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {fee.fiscal_year?.year}年度
+                        {fee.fiscal_year?.year || "不明"}年度
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {getMemberTypeLabel(fee.member_type)}
@@ -438,7 +451,7 @@ export default function AdminFeesPage() {
                         {getFeeTypeLabel(fee.fee_type)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ¥{fee.amount.toLocaleString()}
+                        ¥{(fee.amount || 0).toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span
