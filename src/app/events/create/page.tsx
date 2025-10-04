@@ -27,6 +27,15 @@ export default function CreateEventPage() {
     end_time: "",
     location: "",
     max_participants: 20,
+    participation_fee: 0,
+    application_deadline: "",
+    category: "social" as
+      | "social"
+      | "academic"
+      | "cultural"
+      | "sports"
+      | "other",
+    requires_approval: false,
   });
 
   const [saving, setSaving] = useState(false);
@@ -65,6 +74,14 @@ export default function CreateEventPage() {
         throw new Error("過去の日付は選択できません");
       }
 
+      // 申込締切日のバリデーション
+      if (formData.application_deadline) {
+        const deadlineDate = new Date(formData.application_deadline);
+        if (deadlineDate >= eventDate) {
+          throw new Error("申込締切日はイベント開催日より前に設定してください");
+        }
+      }
+
       // イベントを作成
       const { data, error } = await (supabase.from("events") as any)
         .insert({
@@ -92,12 +109,19 @@ export default function CreateEventPage() {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? parseInt(value) || 0 : value,
+      [name]:
+        type === "number"
+          ? parseInt(value) || 0
+          : type === "checkbox"
+          ? (e.target as HTMLInputElement).checked
+          : value,
     }));
   };
 
@@ -286,6 +310,94 @@ export default function CreateEventPage() {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
+              </div>
+            </div>
+
+            {/* 参加費と申込締切 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="participation_fee"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  参加費（円）
+                </label>
+                <input
+                  type="number"
+                  id="participation_fee"
+                  name="participation_fee"
+                  min="0"
+                  value={formData.participation_fee}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="0"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  0円の場合は無料イベントとして表示されます
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="application_deadline"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  申込締切日
+                </label>
+                <input
+                  type="date"
+                  id="application_deadline"
+                  name="application_deadline"
+                  value={formData.application_deadline}
+                  onChange={handleInputChange}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  設定しない場合は開催日前日まで申込可能
+                </p>
+              </div>
+            </div>
+
+            {/* カテゴリと承認設定 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  カテゴリ
+                </label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <option value="social">交流・親睦</option>
+                  <option value="academic">学術・勉強</option>
+                  <option value="cultural">文化・芸術</option>
+                  <option value="sports">スポーツ</option>
+                  <option value="other">その他</option>
+                </select>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="requires_approval"
+                  name="requires_approval"
+                  checked={formData.requires_approval}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                />
+                <label
+                  htmlFor="requires_approval"
+                  className="ml-2 block text-sm text-gray-900"
+                >
+                  参加に主催者の承認が必要
+                </label>
               </div>
             </div>
 

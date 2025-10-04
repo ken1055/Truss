@@ -93,9 +93,9 @@ export default function AdminMembersPage() {
     try {
       const { error } = await (supabase as any)
         .from("profiles")
-        .update({ 
+        .update({
           approval_status: status,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq("id", memberId);
 
@@ -109,7 +109,7 @@ export default function AdminMembersPage() {
             : member
         )
       );
-      
+
       setSelectedMember(null);
       alert(`会員の承認状況を「${getStatusLabel(status)}」に更新しました。`);
     } catch (error) {
@@ -237,9 +237,7 @@ export default function AdminMembersPage() {
               <Users className="h-6 w-6 mr-2 text-blue-600" />
               会員管理
             </h1>
-            <p className="text-sm text-gray-600">
-              会員の承認・管理を行います
-            </p>
+            <p className="text-sm text-gray-600">会員の承認・管理を行います</p>
           </div>
         </div>
 
@@ -283,7 +281,9 @@ export default function AdminMembersPage() {
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-center">
               <p className="text-sm text-gray-600">総会員数</p>
-              <p className="text-2xl font-bold text-blue-600">{members.length}</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {members.length}
+              </p>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
@@ -407,7 +407,9 @@ export default function AdminMembersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(member.created_at).toLocaleDateString("ja-JP")}
+                        {new Date(member.created_at).toLocaleDateString(
+                          "ja-JP"
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button

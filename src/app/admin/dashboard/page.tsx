@@ -139,20 +139,36 @@ export default function AdminDashboard() {
       comingSoon: false,
     },
     {
-      title: "イベント管理",
-      description: "イベントの作成・編集・削除",
+      title: "年度管理",
+      description: "会計年度の設定と管理",
       icon: Calendar,
-      href: null as string | null, // 準備中
-      color: "purple",
-      comingSoon: true,
+      href: "/admin/fiscal-years" as string | null,
+      color: "indigo",
+      comingSoon: false,
+    },
+    {
+      title: "会費マスタ",
+      description: "年度・会員区分別の会費設定",
+      icon: Settings,
+      href: "/admin/fees" as string | null,
+      color: "emerald",
+      comingSoon: false,
+    },
+    {
+      title: "役割・権限管理",
+      description: "ユーザーの役割と権限設定",
+      icon: Shield,
+      href: "/admin/roles" as string | null,
+      color: "red",
+      comingSoon: false,
     },
     {
       title: "統計・分析",
       description: "参加状況とマッチング分析",
       icon: BarChart3,
-      href: null as string | null, // 準備中
+      href: "/admin/analytics" as string | null,
       color: "orange",
-      comingSoon: true,
+      comingSoon: false,
     },
   ];
 
@@ -234,7 +250,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* 管理メニュー */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {menuItems.map((item) => (
             <button
               key={item.title}

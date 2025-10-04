@@ -141,15 +141,15 @@ export default function ProfilePage() {
       // ファイルアップロード処理
       if (studentCardFile) {
         setIsUploading(true);
-        const fileExt = studentCardFile.name.split('.').pop();
+        const fileExt = studentCardFile.name.split(".").pop();
         const fileName = `${user.id}/student_card_${Date.now()}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
-          .from('student-documents')
+          .from("student-documents")
           .upload(fileName, studentCardFile);
 
         if (uploadError) {
-          console.error('Student card upload error:', uploadError);
+          console.error("Student card upload error:", uploadError);
           setMessage("学生証のアップロードに失敗しました。");
           setSaving(false);
           setIsUploading(false);
@@ -157,28 +157,28 @@ export default function ProfilePage() {
         }
 
         const { data: urlData } = supabase.storage
-          .from('student-documents')
+          .from("student-documents")
           .getPublicUrl(fileName);
-        
+
         studentCardUrl = urlData.publicUrl;
       }
 
       if (profileImageFile) {
-        const fileExt = profileImageFile.name.split('.').pop();
+        const fileExt = profileImageFile.name.split(".").pop();
         const fileName = `${user.id}/profile_${Date.now()}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
-          .from('profile-images')
+          .from("profile-images")
           .upload(fileName, profileImageFile);
 
         if (uploadError) {
-          console.error('Profile image upload error:', uploadError);
+          console.error("Profile image upload error:", uploadError);
           // プロフィール画像のアップロードエラーは致命的ではない
         } else {
           const { data: urlData } = supabase.storage
-            .from('profile-images')
+            .from("profile-images")
             .getPublicUrl(fileName);
-          
+
           profileImageUrl = urlData.publicUrl;
         }
       }
@@ -200,7 +200,8 @@ export default function ProfilePage() {
         ...formData,
         member_type: memberType,
         approval_status: "pending",
-        payment_status: formData.student_type === "international" ? "paid_cash" : "unpaid",
+        payment_status:
+          formData.student_type === "international" ? "paid_cash" : "unpaid",
         ...(studentCardUrl && { student_card_url: studentCardUrl }),
         ...(profileImageUrl && { profile_image_url: profileImageUrl }),
       };
@@ -323,7 +324,10 @@ export default function ProfilePage() {
                 type="text"
                 value={formData.student_id}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, student_id: e.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    student_id: e.target.value,
+                  }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="例: 23B1234567"
@@ -355,7 +359,10 @@ export default function ProfilePage() {
                 type="text"
                 value={formData.department}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, department: e.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    department: e.target.value,
+                  }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="例: 工学部情報工学科"
