@@ -88,7 +88,9 @@ export default function AdminAnalyticsPage() {
 
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState<"7d" | "30d" | "90d" | "1y">("30d");
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    "7d" | "30d" | "90d" | "1y"
+  >("30d");
 
   const fetchAnalytics = useCallback(async () => {
     if (!user) return;
@@ -120,22 +122,27 @@ export default function AdminAnalyticsPage() {
       const membersByType = [
         {
           name: "日本人学生",
-          value: members.filter((m) => m.member_type === "japanese_student").length,
+          value: members.filter((m) => m.member_type === "japanese_student")
+            .length,
           color: COLORS.primary,
         },
         {
           name: "正規留学生",
-          value: members.filter((m) => m.member_type === "international_student").length,
+          value: members.filter(
+            (m) => m.member_type === "international_student"
+          ).length,
           color: COLORS.secondary,
         },
         {
           name: "交換留学生",
-          value: members.filter((m) => m.member_type === "exchange_student").length,
+          value: members.filter((m) => m.member_type === "exchange_student")
+            .length,
           color: COLORS.warning,
         },
         {
           name: "一般学生",
-          value: members.filter((m) => m.member_type === "regular_student").length,
+          value: members.filter((m) => m.member_type === "regular_student")
+            .length,
           color: COLORS.info,
         },
       ];
@@ -235,8 +242,10 @@ export default function AdminAnalyticsPage() {
         totalPaid: payments
           .filter((p) => p.status === "completed")
           .reduce((sum, p) => sum + p.amount, 0),
-        totalUnpaid: members.filter((m) => m.payment_status === "unpaid").length,
-        pendingCash: members.filter((m) => m.payment_status === "pending_cash").length,
+        totalUnpaid: members.filter((m) => m.payment_status === "unpaid")
+          .length,
+        pendingCash: members.filter((m) => m.payment_status === "pending_cash")
+          .length,
         refunded: payments
           .filter((p) => p.status === "refunded")
           .reduce((sum, p) => sum + p.amount, 0),
@@ -244,12 +253,17 @@ export default function AdminAnalyticsPage() {
 
       // イベント参加統計
       const eventParticipation = events.slice(0, 10).map((event) => {
-        const eventParticipants = participants.filter((p) => p.event_id === event.id);
+        const eventParticipants = participants.filter(
+          (p) => p.event_id === event.id
+        );
         return {
-          eventTitle: event.title.slice(0, 20) + (event.title.length > 20 ? "..." : ""),
+          eventTitle:
+            event.title.slice(0, 20) + (event.title.length > 20 ? "..." : ""),
           registered: eventParticipants.length,
-          attended: eventParticipants.filter((p) => p.status === "attended").length,
-          noShow: eventParticipants.filter((p) => p.status === "no_show").length,
+          attended: eventParticipants.filter((p) => p.status === "attended")
+            .length,
+          noShow: eventParticipants.filter((p) => p.status === "no_show")
+            .length,
         };
       });
 
@@ -277,14 +291,18 @@ export default function AdminAnalyticsPage() {
           status: "warning" as const,
         })),
       ]
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
         .slice(0, 10);
 
       setAnalytics({
         totalMembers: members.length,
         totalEvents: events.length,
         totalRevenue: paymentStats.totalPaid,
-        pendingApprovals: members.filter((m) => m.approval_status === "pending").length,
+        pendingApprovals: members.filter((m) => m.approval_status === "pending")
+          .length,
         membersByType,
         membersByStatus,
         eventsByCategory,
@@ -547,14 +565,19 @@ export default function AdminAnalyticsPage() {
                     }`}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{activity.description}</p>
+                    <p className="text-sm text-gray-900">
+                      {activity.description}
+                    </p>
                     <p className="text-xs text-gray-500">
-                      {new Date(activity.timestamp).toLocaleDateString("ja-JP", {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {new Date(activity.timestamp).toLocaleDateString(
+                        "ja-JP",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </p>
                   </div>
                 </div>
@@ -580,7 +603,9 @@ export default function AdminAnalyticsPage() {
               <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                 <div className="flex items-center">
                   <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
-                  <span className="text-sm font-medium text-red-900">未払い</span>
+                  <span className="text-sm font-medium text-red-900">
+                    未払い
+                  </span>
                 </div>
                 <span className="text-lg font-bold text-red-600">
                   {analytics.paymentStats.totalUnpaid}人
@@ -604,4 +629,3 @@ export default function AdminAnalyticsPage() {
     </div>
   );
 }
-

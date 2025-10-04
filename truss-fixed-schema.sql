@@ -1,5 +1,5 @@
 -- ===============================================
--- Truss会員・イベント管理システム 統合SQLスクリプト
+-- Truss会員・イベント管理システム 統合SQLスクリプト（修正版）
 -- ===============================================
 -- 
 -- このスクリプトは以下の機能を実装します：
@@ -14,7 +14,7 @@
 --
 -- 実行方法：
 -- 1. Supabase Dashboard > SQL Editor でこのスクリプトを実行
--- 2. 各セクションを順番に実行することを推奨
+-- 2. エラーが発生した場合は、セクションごとに分けて実行してください
 --
 -- ===============================================
 
@@ -77,29 +77,6 @@ CREATE TABLE IF NOT EXISTS fee_master (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   UNIQUE(fiscal_year_id, member_type, fee_type)
 );
-
--- デフォルトの会費設定を挿入
-DO $$
-DECLARE
-  current_fiscal_year_id UUID;
-BEGIN
-  -- 現在のアクティブな年度のIDを取得
-  SELECT id INTO current_fiscal_year_id FROM fiscal_years WHERE is_active = TRUE LIMIT 1;
-  
-  IF current_fiscal_year_id IS NOT NULL THEN
-    -- 各会員区分の入会費・年会費を設定
-    INSERT INTO fee_master (fiscal_year_id, member_type, fee_type, amount) VALUES
-    (current_fiscal_year_id, 'japanese_student', 'admission', 1000),
-    (current_fiscal_year_id, 'japanese_student', 'annual', 3000),
-    (current_fiscal_year_id, 'international_student', 'admission', 500),
-    (current_fiscal_year_id, 'international_student', 'annual', 2000),
-    (current_fiscal_year_id, 'exchange_student', 'admission', 0),
-    (current_fiscal_year_id, 'exchange_student', 'annual', 1000),
-    (current_fiscal_year_id, 'regular_student', 'admission', 1500),
-    (current_fiscal_year_id, 'regular_student', 'annual', 4000)
-    ON CONFLICT (fiscal_year_id, member_type, fee_type) DO NOTHING;
-  END IF;
-END $$;
 
 -- ===============================================
 -- セクション4: イベント参加者管理
@@ -170,7 +147,7 @@ CREATE TABLE IF NOT EXISTS no_show_history (
   recorded_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   recorded_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now') NOT NULL
 );
 
 -- ===============================================
@@ -187,7 +164,37 @@ VALUES ('profile-images', 'profile-images', TRUE)
 ON CONFLICT (id) DO NOTHING;
 
 -- ===============================================
--- セクション9: Row Level Security (RLS) ポリシー
+-- セクション9: 初期データの挿入（テーブル作成後）
+-- ===============================================
+
+-- デフォルトの会費設定を挿入（テーブル作成後に実行）
+DO $$
+DECLARE
+  current_fiscal_year_id UUID;
+BEGIN
+  -- 現在のアクティブな年度のIDを取得
+  SELECT id INTO current_fiscal_year_id FROM fiscal_years WHERE is_active = TRUE LIMIT 1;
+  
+  IF current_fiscal_year_id IS NOT NULL THEN
+    -- 各会員区分の入会費・年会費を設定
+    INSERT INTO fee_master (fiscal_year_id, member_type, fee_type, amount) VALUES
+    (current_fiscal_year_id, 'japanese_student', 'admission', 1000),
+    (current_fiscal_year_id, 'japanese_student', 'annual', 3000),
+    (current_fiscal_year_id, 'international_student', 'admission', 500),
+    (current_fiscal_year_id, 'international_student', 'annual', 2000),
+    (current_fiscal_year_id, 'exchange_student', 'admission', 0),
+    (current_fiscal_year_id, 'exchange_student', 'annual', 1000),
+    (current_fiscal_year_id, 'regular_student', 'admission', 1500),
+    (current_fiscal_year_id, 'regular_student', 'annual', 4000)
+    ON CONFLICT (fiscal_year_id, member_type, fee_type) DO NOTHING;
+  END IF;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE NOTICE 'Error inserting fee data: %', SQLERRM;
+END $$;
+
+-- ===============================================
+-- セクション10: Row Level Security (RLS) ポリシー
 -- ===============================================
 
 -- fiscal_years テーブルのRLS
@@ -341,7 +348,7 @@ ON no_show_history FOR ALL TO authenticated USING (
 );
 
 -- ===============================================
--- セクション10: ストレージポリシー
+-- セクション11: ストレージポリシー
 -- ===============================================
 
 -- 学生証ドキュメント用のポリシー
@@ -372,7 +379,7 @@ CREATE POLICY "Allow public access to profile images"
 ON storage.objects FOR SELECT TO public USING (bucket_id = 'profile-images');
 
 -- ===============================================
--- セクション11: パフォーマンス最適化用インデックス
+-- セクション12: パフォーマンス最適化用インデックス
 -- ===============================================
 
 -- profilesテーブル用インデックス
@@ -418,7 +425,7 @@ CREATE INDEX IF NOT EXISTS idx_no_show_history_event_id ON no_show_history(event
 CREATE INDEX IF NOT EXISTS idx_no_show_history_fiscal_year_id ON no_show_history(fiscal_year_id);
 
 -- ===============================================
--- セクション12: 更新トリガー関数
+-- セクション13: 更新トリガー関数
 -- ===============================================
 
 -- updated_at自動更新関数
@@ -452,7 +459,7 @@ CREATE TRIGGER update_user_roles_updated_at
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ===============================================
--- セクション13: 統計・分析用ビュー（オプション）
+-- セクション14: 統計・分析用ビュー（オプション）
 -- ===============================================
 
 -- 会員統計ビュー
@@ -525,4 +532,3 @@ BEGIN
     RAISE NOTICE '4. 統計確認: /admin/analytics';
     RAISE NOTICE '===============================================';
 END $$;
-
