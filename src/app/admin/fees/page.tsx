@@ -74,7 +74,7 @@ export default function AdminFeesPage() {
         ...fee,
         amount: fee.amount || 0,
         is_active: fee.is_active ?? true,
-        fiscal_year: fee.fiscal_year || { year: "不明" }
+        fiscal_year: fee.fiscal_year || { year: "不明" },
       }));
 
       setFees(validatedData as FeeMaster[]);

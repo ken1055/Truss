@@ -144,42 +144,68 @@ export default function ProfilePage() {
         const fileExt = studentCardFile.name.split(".").pop();
         const fileName = `${user.id}/student_card_${Date.now()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("student-documents")
-          .upload(fileName, studentCardFile);
+        try {
+          const { error: uploadError } = await supabase.storage
+            .from("student-documents")
+            .upload(fileName, studentCardFile);
 
-        if (uploadError) {
-          console.error("Student card upload error:", uploadError);
-          setMessage("学生証のアップロードに失敗しました。");
+          if (uploadError) {
+            console.error("Student card upload error:", uploadError);
+            
+            // バケットが存在しない場合のエラーハンドリング
+            if (uploadError.message?.includes("Bucket not found")) {
+              setMessage("ストレージバケットが設定されていません。管理者にお問い合わせください。");
+            } else {
+              setMessage(`学生証のアップロードに失敗しました: ${uploadError.message}`);
+            }
+            setSaving(false);
+            setIsUploading(false);
+            return;
+          }
+
+          const { data: urlData } = supabase.storage
+            .from("student-documents")
+            .getPublicUrl(fileName);
+
+          studentCardUrl = urlData.publicUrl;
+        } catch (error) {
+          console.error("Student card upload error:", error);
+          setMessage("学生証のアップロードでエラーが発生しました。");
           setSaving(false);
           setIsUploading(false);
           return;
         }
-
-        const { data: urlData } = supabase.storage
-          .from("student-documents")
-          .getPublicUrl(fileName);
-
-        studentCardUrl = urlData.publicUrl;
       }
 
       if (profileImageFile) {
         const fileExt = profileImageFile.name.split(".").pop();
         const fileName = `${user.id}/profile_${Date.now()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("profile-images")
-          .upload(fileName, profileImageFile);
-
-        if (uploadError) {
-          console.error("Profile image upload error:", uploadError);
-          // プロフィール画像のアップロードエラーは致命的ではない
-        } else {
-          const { data: urlData } = supabase.storage
+        try {
+          const { error: uploadError } = await supabase.storage
             .from("profile-images")
-            .getPublicUrl(fileName);
+            .upload(fileName, profileImageFile);
 
-          profileImageUrl = urlData.publicUrl;
+          if (uploadError) {
+            console.error("Profile image upload error:", uploadError);
+            
+            // バケットが存在しない場合のエラーハンドリング
+            if (uploadError.message?.includes("Bucket not found")) {
+              console.warn("Profile image bucket not found, skipping upload");
+              // プロフィール画像のアップロードエラーは致命的ではないので続行
+            } else {
+              console.warn(`Profile image upload failed: ${uploadError.message}`);
+            }
+          } else {
+            const { data: urlData } = supabase.storage
+              .from("profile-images")
+              .getPublicUrl(fileName);
+
+            profileImageUrl = urlData.publicUrl;
+          }
+        } catch (error) {
+          console.error("Profile image upload error:", error);
+          // プロフィール画像のアップロードエラーは致命的ではないので続行
         }
       }
 

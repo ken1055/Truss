@@ -56,7 +56,7 @@ export default function AdminFiscalYearsPage() {
       const validatedData = (data || []).map((year: any) => ({
         ...year,
         year: year.year || 0,
-        is_active: year.is_active ?? false
+        is_active: year.is_active ?? false,
       }));
 
       setFiscalYears(validatedData as FiscalYear[]);

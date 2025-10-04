@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .from("profiles")
           .select("*")
           .eq("id", targetUser.id)
-          .single();
+          .maybeSingle(); // single() の代わりに maybeSingle() を使用
 
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(
