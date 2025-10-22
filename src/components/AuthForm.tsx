@@ -74,10 +74,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
           throw error;
         } else if (data.user) {
           setMessage(
-            "アカウントが作成されました！ダッシュボードに移動します..."
+            "アカウントが作成されました！ホーム画面に移動します..."
           );
           setTimeout(() => {
-            router.push("/dashboard");
+            router.push("/home");
           }, 2000);
         }
       } else {
@@ -89,7 +89,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
         if (error) {
           throw error;
         } else if (data.user) {
-          router.push("/dashboard");
+          router.push("/home");
         }
       }
     } catch (error: unknown) {
