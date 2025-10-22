@@ -22,7 +22,7 @@ export default function BottomNav() {
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
-            
+
             return (
               <Link
                 key={item.href}
@@ -43,4 +43,3 @@ export default function BottomNav() {
     </nav>
   );
 }
-
